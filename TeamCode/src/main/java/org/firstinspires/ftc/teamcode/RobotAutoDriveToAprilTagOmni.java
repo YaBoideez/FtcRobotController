@@ -134,6 +134,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         MotorBL  = hardwareMap.get(DcMotor.class, "MotorBL");
         MotorBR = hardwareMap.get(DcMotor.class, "MotorBR");
         Hinge = hardwareMap.get(DcMotor.class, "Hinge");
+        Hinge1 = hardwareMap.get(DcMotor.class, "Hinge1");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
@@ -142,6 +143,11 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         MotorBL.setDirection(DcMotor.Direction.REVERSE);
         MotorFR.setDirection(DcMotor.Direction.FORWARD);
         MotorBR.setDirection(DcMotor.Direction.FORWARD);
+
+        Hinge.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Hinge.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Hinge1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Hinge1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
         if (USE_WEBCAM)
@@ -155,8 +161,10 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
 
         while (opModeIsActive())
         {
-            telemetry.addData("Hinge", Hinge.getCurrentPosition());
             Hinge1.setPower(gamepad2.right_stick_y);
+            Hinge.setPower(gamepad2.left_stick_y);
+            telemetry.addData("Hinge", Hinge.getCurrentPosition());
+            telemetry.addData("Hinge1", Hinge.getCurrentPosition());
             targetFound = false;
             desiredTag  = null;
 
