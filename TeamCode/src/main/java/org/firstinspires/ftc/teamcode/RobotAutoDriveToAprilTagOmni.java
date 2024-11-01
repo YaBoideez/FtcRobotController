@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -109,12 +110,15 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
     private DcMotor MotorBR   = null;  //  Used to control the right back drive wheel
     private DcMotor Hinge;
     private DcMotor Hinge1;
+    private Servo Wrist;
+    private Servo Gripper;
 
     private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
     private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
     private VisionPortal visionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
-    private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
+    private AprilTagDetection desiredTag = null;
+    int currentServoPosition;// Used to hold the data for a detected AprilTag
 
     @Override public void runOpMode()
     {
@@ -135,6 +139,8 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         MotorBR = hardwareMap.get(DcMotor.class, "MotorBR");
         Hinge = hardwareMap.get(DcMotor.class, "Hinge");
         Hinge1 = hardwareMap.get(DcMotor.class, "Hinge1");
+        Wrist = hardwareMap.get(Servo.class, "Wrist");
+        Gripper = hardwareMap.get(Servo.class, "Gripper");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
@@ -155,6 +161,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         telemetry.addData("Camera preview on/off", "3 dots, Camera Stream");
         telemetry.addData(">", "Touch START to start OpMode");
         telemetry.update();
+        Wrist.setPosition(currentServoPosition);
         waitForStart();
 
         while (opModeIsActive())
@@ -163,6 +170,8 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             Hinge.setPower(gamepad2.left_stick_y);
             telemetry.addData("Hinge", Hinge.getCurrentPosition());
             telemetry.addData("Hinge1", Hinge1.getCurrentPosition());
+            Open_Close_Claw();
+            Rotate_wrist();
             targetFound = false;
             desiredTag  = null;
 
@@ -331,9 +340,22 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         }
     }
 
-    /**
-     *
-     */
+    private void Rotate_wrist() {
+        float joystickInput;
+
+        joystickInput = gamepad2.left_stick_y;
+        currentServoPosition = (int) (currentServoPosition + joystickInput);
+        Wrist.setPosition(currentServoPosition);
+    }
+
+    private void Open_Close_Claw() {
+        if (gamepad2.a) {
+            Gripper.setPosition(1);
+        }
+        if (gamepad2.y) {
+            Gripper.setPosition(0.5);
+        }
+
 
 
 }
