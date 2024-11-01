@@ -29,7 +29,6 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -108,6 +107,8 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
     private DcMotor MotorFR  = null;  //  Used to control the right front drive wheel
     private DcMotor MotorBL    = null;  //  Used to control the left back drive wheel
     private DcMotor MotorBR   = null;  //  Used to control the right back drive wheel
+    private DcMotor Hinge;
+    private DcMotor Hinge1;
 
     private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
     private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
@@ -132,6 +133,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         MotorFR = hardwareMap.get(DcMotor.class, "MotorFR");
         MotorBL  = hardwareMap.get(DcMotor.class, "MotorBL");
         MotorBR = hardwareMap.get(DcMotor.class, "MotorBR");
+        Hinge = hardwareMap.get(DcMotor.class, "Hinge");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
@@ -140,6 +142,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         MotorBL.setDirection(DcMotor.Direction.REVERSE);
         MotorFR.setDirection(DcMotor.Direction.FORWARD);
         MotorBR.setDirection(DcMotor.Direction.FORWARD);
+
 
         if (USE_WEBCAM)
             setManualExposure(6, 250);  // Use low exposure time to reduce motion blur
@@ -152,6 +155,8 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
 
         while (opModeIsActive())
         {
+            telemetry.addData("Hinge", Hinge.getCurrentPosition());
+            Hinge1.setPower(gamepad2.right_stick_y);
             targetFound = false;
             desiredTag  = null;
 
@@ -204,9 +209,9 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             } else {
 
                 // drive using manual POV Joystick mode.  Slow things down to make the robot more controlable.
-                drive  = -gamepad1.left_stick_y  / 2.0;  // Reduce drive rate to 50%.
-                strafe = -gamepad1.left_stick_x  / 2.0;  // Reduce strafe rate to 50%.
-                turn   = -gamepad1.right_stick_x / 3.0;  // Reduce turn rate to 33%.
+                drive  = -gamepad1.left_stick_y  / 1.0;  // Reduce drive rate to 50%.
+                strafe = -gamepad1.left_stick_x  / 1.0;  // Reduce strafe rate to 50%.
+                turn   = -gamepad1.right_stick_x / 2.0;  // Reduce turn rate to 33%.
                 telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
             }
             telemetry.update();
@@ -319,4 +324,10 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             sleep(20);
         }
     }
+
+    /**
+     *
+     */
+
+
 }
