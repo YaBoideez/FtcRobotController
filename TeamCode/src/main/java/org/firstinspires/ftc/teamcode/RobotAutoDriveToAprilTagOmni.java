@@ -171,6 +171,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             telemetry.addData("Hinge", Hinge.getCurrentPosition());
             telemetry.addData("Hinge1", Hinge1.getCurrentPosition());
             Open_Close_Claw();
+            Rotate_wrist();
             targetFound = false;
             desiredTag  = null;
 
@@ -342,7 +343,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
 
 
     private void Open_Close_Claw() {
-        if (gamepad2.x) {
+        if (gamepad2.cross) {
             Gripper.setPosition(1);
         }
         if (gamepad2.triangle) {
