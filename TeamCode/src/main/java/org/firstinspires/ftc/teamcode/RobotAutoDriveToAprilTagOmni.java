@@ -166,7 +166,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
 
         while (opModeIsActive())
         {
-            Hinge1.setPower(gamepad2.right_stick_y);
+            Hinge1.setPower(gamepad2.right_stick_y/2);
             Hinge.setPower(-gamepad2.right_stick_y);
             telemetry.addData("Hinge", Hinge.getCurrentPosition());
             telemetry.addData("Hinge1", Hinge1.getCurrentPosition());
