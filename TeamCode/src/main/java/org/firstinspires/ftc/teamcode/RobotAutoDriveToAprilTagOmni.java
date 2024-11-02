@@ -353,10 +353,12 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
 
     private void Rotate_wrist() {
         if (gamepad2.circle) {
-            Wrist.setPosition(currentServoPosition += .01);
+            Wrist.setPosition(currentServoPosition += .1);
         }
         if (gamepad2.square) {
-            Wrist.setPosition(currentServoPosition -= .01);
+            Wrist.setPosition(currentServoPosition -= .1);
+        } else {
+            Wrist.setPosition(1);
         }
     }
 }
