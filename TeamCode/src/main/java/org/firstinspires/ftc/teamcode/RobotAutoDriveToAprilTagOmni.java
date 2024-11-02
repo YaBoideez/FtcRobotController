@@ -342,14 +342,20 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
 
 
     private void Open_Close_Claw() {
-        if (gamepad2.a) {
+        if (gamepad2.x) {
             Gripper.setPosition(1);
         }
-        if (gamepad2.y) {
+        if (gamepad2.triangle) {
             Gripper.setPosition(0.5);
         }
+    }
 
-
-
-}
+    private void Rotate_wrist() {
+        if (gamepad2.circle) {
+            Wrist.setPosition(1);
+        }
+        if (gamepad2.square) {
+            Wrist.setPosition(0.5);
+        }
+    }
 }
