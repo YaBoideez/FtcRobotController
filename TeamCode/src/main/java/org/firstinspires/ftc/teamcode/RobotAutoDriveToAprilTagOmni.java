@@ -167,7 +167,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         while (opModeIsActive())
         {
             Hinge1.setPower(gamepad2.right_stick_y);
-            Hinge.setPower(gamepad2.left_stick_y);
+            Hinge.setPower(-gamepad2.right_stick_y);
             telemetry.addData("Hinge", Hinge.getCurrentPosition());
             telemetry.addData("Hinge1", Hinge1.getCurrentPosition());
             Open_Close_Claw();
@@ -270,6 +270,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         MotorFR.setPower(rightFrontPower);
         MotorBL.setPower(leftBackPower);
         MotorBR.setPower(rightBackPower);
+
     }
 
     /**
@@ -351,14 +352,17 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         }
     }
 
+    private void MoveArmOnXZ_Plane() {
+
+
+    }
+
     private void Rotate_wrist() {
         if (gamepad2.circle) {
             Wrist.setPosition(currentServoPosition += .1);
         }
         if (gamepad2.square) {
             Wrist.setPosition(currentServoPosition -= .1);
-        } else {
-            Wrist.setPosition(1);
         }
     }
 }
