@@ -32,7 +32,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -433,7 +432,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         }
     }
     // New IK calculation function
-    private double[] calculateIK(double targetX, double targetZ) {
+    /*private double[] calculateIK(double targetX, double targetZ) {
         // Convert target from cm to inches for calculation
         //targetX /= 2.54;  // Convert to inches (assuming targetX is originally in cm)
         //targetZ /= 2.54;  // Convert to inches
@@ -459,7 +458,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         int elbowTarget = (int)(elbowAngle * 30.95); // Assuming you have a conversion factor for your encoder
 
         return new double[]{shoulderTarget, elbowTarget};
-    }
+    }*/
 
 
     private void Rotate_wrist() {

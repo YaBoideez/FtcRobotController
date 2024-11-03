@@ -73,16 +73,21 @@ public class InverseKinematicsTest extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
+    private DcMotor Shoulder = null;
+    private DcMotor Elbow = null;
+
 
     @Override
     public void runOpMode() {
 
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
-        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
-        leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
+        leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
+        leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+        Shoulder = hardwareMap.get(DcMotor.class, "Shoulder");
+        Elbow = hardwareMap.get(DcMotor.class, "Elbow");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -99,12 +104,10 @@ public class InverseKinematicsTest extends LinearOpMode {
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        double L1 = 33.0;
-        double L2 = 35.5;
-
-        int x_target = 0;
-        int z_target = 28;
-
+        Shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
@@ -118,16 +121,16 @@ public class InverseKinematicsTest extends LinearOpMode {
             double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-            double lateral =  gamepad1.left_stick_x;
-            double yaw     =  gamepad1.right_stick_x;
+            double axial = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
+            double lateral = gamepad1.left_stick_x;
+            double yaw = gamepad1.right_stick_x;
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower  = axial + lateral + yaw;
+            double leftFrontPower = axial + lateral + yaw;
             double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower   = axial - lateral + yaw;
-            double rightBackPower  = axial + lateral - yaw;
+            double leftBackPower = axial - lateral + yaw;
+            double rightBackPower = axial + lateral - yaw;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -136,21 +139,15 @@ public class InverseKinematicsTest extends LinearOpMode {
             max = Math.max(max, Math.abs(rightBackPower));
 
             if (max > 1.0) {
-                leftFrontPower  /= max;
+                leftFrontPower /= max;
                 rightFrontPower /= max;
-                leftBackPower   /= max;
-                rightBackPower  /= max;
+                leftBackPower /= max;
+                rightBackPower /= max;
             }
 
-            // This is test code:
-            //
-            // Uncomment the following code to test your motor directions.
-            // Each button should make the corresponding motor run FORWARD.
-            //   1) First get all the motors to take to correct positions on the robot
-            //      by adjusting your Robot Configuration if necessary.
-            //   2) Then make sure they run in the correct direction by modifying the
-            //      the setDirection() calls above.
-            // Once the correct motors move in the correct direction re-comment this code.
+            if (gamepad2.square){
+                calculationIK();
+            }
 
             /*
             leftFrontPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
@@ -172,7 +169,51 @@ public class InverseKinematicsTest extends LinearOpMode {
             telemetry.update();
         }
     }
-    public void calculationIK() {
 
+    public void calculationIK() {
+        //Law of cosines to find the angle at the elbow (theta_2)
+        double L1 = 33.0;  // Length of the first arm segment
+        double L2 = 35.5;  // Length of the second arm segment
+
+        // Target position
+        double xTarget = 0;
+        double zTarget = 34;  // Starting y (14) + 20 cm upwards
+
+        // Calculate the distance to the target point
+        double distanceToTarget = Math.sqrt(xTarget * xTarget + zTarget * zTarget);
+
+        // Check if the point is reachable
+        if (distanceToTarget > (L1 + L2)) {
+            System.out.println("Target is out of reach.");
+        } else {
+            // Law of cosines to find the angle at the elbow (theta_2)
+            double cosTheta2 = (L1 * L1 + L2 * L2 - distanceToTarget * distanceToTarget) / (2 * L1 * L2);
+            double theta2 = Math.acos(cosTheta2);  // Elbow angle in radians
+
+            // Using trigonometric relationships to find the angle at the shoulder (theta_1)
+            // Intermediate angles for clarity
+            double k1 = L1 + L2 * Math.cos(theta2);
+            double k2 = L2 * Math.sin(theta2);
+
+            double theta1 = Math.atan2(zTarget, xTarget) - Math.atan2(k2, k1);  // Shoulder angle in radians
+
+            // Convert radians to degrees for easier interpretation
+            double theta1Deg = Math.toDegrees(theta1);
+            double theta2Deg = Math.toDegrees(theta2);
+
+            //Convert degrees to ticks
+            int ShoulderTargetPos = (int) (theta1Deg*58.678);
+            int ElbowTargetPos = (int) (theta2Deg*30.95);
+
+            Shoulder.setTargetPosition(ShoulderTargetPos);
+            Elbow.setTargetPosition(ElbowTargetPos);
+
+            Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            zTarget += 5;
+
+
+        }
     }
 }
