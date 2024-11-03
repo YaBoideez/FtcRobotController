@@ -108,10 +108,10 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
     private DcMotor MotorFR  = null;  //  Used to control the right front drive wheel
     private DcMotor MotorBL    = null;  //  Used to control the left back drive wheel
     private DcMotor MotorBR   = null;  //  Used to control the right back drive wheel
-    private DcMotor Hinge;
-    private DcMotor Hinge1;
-    private Servo Wrist;
-    private Servo Gripper;
+    private DcMotor Shoulder   =null;
+    private DcMotor Elbow      =null;
+    private Servo Wrist        = null;
+    private Servo Gripper       = null;
 
     private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
     private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
@@ -137,8 +137,8 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         MotorFR = hardwareMap.get(DcMotor.class, "MotorFR");
         MotorBL  = hardwareMap.get(DcMotor.class, "MotorBL");
         MotorBR = hardwareMap.get(DcMotor.class, "MotorBR");
-        Hinge = hardwareMap.get(DcMotor.class, "Hinge");
-        Hinge1 = hardwareMap.get(DcMotor.class, "Hinge1");
+        Shoulder = hardwareMap.get(DcMotor.class, "Shoulder");
+        Elbow = hardwareMap.get(DcMotor.class, "Elbow");
         Wrist = hardwareMap.get(Servo.class, "Wrist");
         Gripper = hardwareMap.get(Servo.class, "Gripper");
 
@@ -150,8 +150,11 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         MotorFR.setDirection(DcMotor.Direction.FORWARD);
         MotorBR.setDirection(DcMotor.Direction.FORWARD);
 
-        Hinge.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        Hinge1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
 
         if (USE_WEBCAM)
@@ -164,12 +167,34 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         Wrist.setPosition(currentServoPosition);
         waitForStart();
 
+        int newShoulderTarget;
+        int newElbowTarget;
+
         while (opModeIsActive())
         {
-            Hinge1.setPower(gamepad2.right_stick_y/2);
-            Hinge.setPower(-gamepad2.right_stick_y);
-            telemetry.addData("Hinge", Hinge.getCurrentPosition());
-            telemetry.addData("Hinge1", Hinge1.getCurrentPosition());
+
+            double deltaDegree = gamepad2.right_stick_y * 5;
+            newShoulderTarget = Shoulder.getCurrentPosition() + (int)(deltaDegree*58.678);
+            if (gamepad2.left_bumper) {
+                newElbowTarget = Elbow.getCurrentPosition() + (155);
+            } else
+            {
+                newElbowTarget = Elbow.getCurrentPosition() - (int)(deltaDegree*30.95);
+            }
+            Shoulder.setTargetPosition(newShoulderTarget);
+            Elbow.setTargetPosition(newElbowTarget);
+
+            // Turn On RUN_TO_Position
+
+            Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            Shoulder.setPower(.5);
+            Elbow.setPower(.5);
+
+
+            telemetry.addData("Shoulder", Shoulder.getCurrentPosition());
+            telemetry.addData("Elbow", Elbow.getCurrentPosition());
             Open_Close_Claw();
             Rotate_wrist();
             targetFound = false;
