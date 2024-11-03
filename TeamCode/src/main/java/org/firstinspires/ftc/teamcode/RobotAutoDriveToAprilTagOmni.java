@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -171,36 +172,56 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         Wrist.setPosition(currentServoPosition);
         waitForStart();
 
-        int newShoulderTarget;
-        int newElbowTarget;
+        int newShoulderTarget = 0;
+        int newElbowTarget = 0;
+        double x = 0;
+        double z = 14;
 
         while (opModeIsActive())
         {
 
-            /*double deltaDegree = gamepad2.right_stick_y * 5;
+
+            double deltaDegree = gamepad2.right_stick_y * 5;
             newShoulderTarget = Shoulder.getCurrentPosition() + (int)(deltaDegree*58.678);
             if (gamepad2.left_bumper) {
                 newElbowTarget = Elbow.getCurrentPosition() + (155);
-            } else
-            {
+            } else if (gamepad2.right_bumper){
+                newElbowTarget = Elbow.getCurrentPosition() - (155); //155 == 5 degree change in angle
+            } else if (gamepad2.square) {
+                z += 5;
+            } else {
                 newElbowTarget = Elbow.getCurrentPosition() - (int)(deltaDegree*30.95);
             }
+
+            // calculate the angles
+            double h = Math.sqrt(x*x + z*z);
+            double phi = Math.atan(z/x) * (180/Math.PI);
+            double theta = Math.acos((h/2)/33) * (180/Math.PI);
+
+            double a1 = phi + theta;
+            double a2 = phi - theta;
+
+           //newShoulderTarget = (int) (a1 * 58.678);
+            //newElbowTarget = (int) (a2*30.95);
+
+
+
+            // set target ticks
             Shoulder.setTargetPosition(newShoulderTarget);
             Elbow.setTargetPosition(newElbowTarget);
-
             // Turn On RUN_TO_Position
 
             Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-            Shoulder.setPower(.5);
-            Elbow.setPower(.5);*/
+            Shoulder.setPower(.75);
+            Elbow.setPower(.75);
 
             // Calculate target position from joystick input for the arm
-            double targetX = gamepad2.left_stick_y * ARM_SEGMENT_1_LENGTH;
+            /*double targetX = gamepad2.left_stick_y * ARM_SEGMENT_1_LENGTH;
             double targetZ = gamepad2.right_stick_y * ARM_SEGMENT_2_LENGTH;
 
-            double[] jointAngles = calculateIK(targetX, targetZ);
+            double[] jointAngles = calculateIK(targetX, targetZ);  // calculateIK takes targetX and targetZ in cm and returns an array of joint angle in ticks
 
             if (jointAngles != null) {
                 int shoulderTarget = (int) jointAngles[0];
@@ -221,7 +242,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
                 // If out of reach, optionally add code to handle it
                 telemetry.addData("Status", "Target out of reach");
                 telemetry.update();
-            }
+            }*/
 
 
 
@@ -265,7 +286,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
                 telemetry.addData("Bearing","%3.0f degrees", desiredTag.ftcPose.bearing);
                 telemetry.addData("Yaw","%3.0f degrees", desiredTag.ftcPose.yaw);
             } else {
-                telemetry.addData("\n>","Drive using joysticks to find valid target\n");
+               // telemetry.addData("\n>","Drive using joysticks to find valid target\n");
             }
 
             // If Left Bumper is being pressed, AND we have found the desired target, Drive to target Automatically .
@@ -285,10 +306,10 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             } else {
 
                 // drive using manual POV Joystick mode.  Slow things down to make the robot more controlable.
-                drive  = -gamepad1.left_stick_y  / 1.0;  // Reduce drive rate to 50%.
-                strafe = -gamepad1.left_stick_x  / 1.0;  // Reduce strafe rate to 50%.
+                drive  = -gamepad1.left_stick_y  /1.5;  // Reduce drive rate to 50%.
+                strafe = -gamepad1.left_stick_x  / 1.5;  // Reduce strafe rate to 50%.
                 turn   = -gamepad1.right_stick_x / 2.0;  // Reduce turn rate to 33%.
-                telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
+               // telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
             }
             telemetry.update();
 
@@ -408,14 +429,14 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         if (gamepad2.x) {
             Gripper.setPosition(1.0); // Open
         } else if (gamepad2.y) {
-            Gripper.setPosition(0.0); // Close
+            Gripper.setPosition(0.5); // Close
         }
     }
     // New IK calculation function
     private double[] calculateIK(double targetX, double targetZ) {
-        // Convert target from inches to cm for calculation
-        //targetX /= 2.54;  // Convert to cm (assuming targetX is originally in inches)
-        //targetZ /= 2.54;  // Convert to cm
+        // Convert target from cm to inches for calculation
+        //targetX /= 2.54;  // Convert to inches (assuming targetX is originally in cm)
+        //targetZ /= 2.54;  // Convert to inches
 
         // Calculate the distance to the target position in the XZ plane
         double distanceToTarget = Math.sqrt(targetX * targetX + targetZ * targetZ);
