@@ -411,19 +411,33 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             Gripper.setPosition(0.0); // Close
         }
     }
+    // New IK calculation function
     private double[] calculateIK(double targetX, double targetZ) {
-        double L1 = ARM_SEGMENT_1_LENGTH;
-        double L2 = ARM_SEGMENT_2_LENGTH;
-        double distance = Math.sqrt(targetX * targetX + targetY * targetY);
+        // Convert target from inches to cm for calculation
+        //targetX /= 2.54;  // Convert to cm (assuming targetX is originally in inches)
+        //targetZ /= 2.54;  // Convert to cm
 
-        if (distance > (L1 + L2)) return null; // Out of reach
+        // Calculate the distance to the target position in the XZ plane
+        double distanceToTarget = Math.sqrt(targetX * targetX + targetZ * targetZ);
 
-        double angle2 = Math.acos((targetX * targetX + targetZ * targetZ - L1 * L1 - L2 * L2) / (2 * L1 * L2));
-        double angle1 = Math.atan2(targetZ, targetX) - Math.atan2(L2 * Math.sin(angle2), L1 + L2 * Math.cos(angle2));
-        int shoulderPosition = (int) Math.toDegrees(angle1);
-        int elbowPosition = (int) Math.toDegrees(angle2);
+        // Check if the target is reachable
+        if (distanceToTarget > (ARM_SEGMENT_1_LENGTH + ARM_SEGMENT_2_LENGTH) || distanceToTarget < Math.abs(ARM_SEGMENT_1_LENGTH - ARM_SEGMENT_2_LENGTH)) {
+            return null; // Target is out of reach
+        }
 
-        return new double[]{shoulderPosition, elbowPosition};
+        // Calculate the angles using the law of cosines
+        double angle2 = Math.acos((ARM_SEGMENT_1_LENGTH * ARM_SEGMENT_1_LENGTH + ARM_SEGMENT_2_LENGTH * ARM_SEGMENT_2_LENGTH - distanceToTarget * distanceToTarget) / (2 * ARM_SEGMENT_1_LENGTH * ARM_SEGMENT_2_LENGTH));
+        double angle1 = Math.atan2(targetZ, targetX) - Math.atan2(ARM_SEGMENT_2_LENGTH * Math.sin(angle2), ARM_SEGMENT_1_LENGTH + ARM_SEGMENT_2_LENGTH * Math.cos(angle2));
+
+        // Convert angles from radians to degrees for the motor
+        double shoulderAngle = Math.toDegrees(angle1);
+        double elbowAngle = Math.toDegrees(angle2);
+
+        // Calculate encoder positions based on gear ratio (4:1)
+        int shoulderTarget = (int)(shoulderAngle * 58.678); // Assuming you have a conversion factor for your encoder
+        int elbowTarget = (int)(elbowAngle * 30.95); // Assuming you have a conversion factor for your encoder
+
+        return new double[]{shoulderTarget, elbowTarget};
     }
 
 
