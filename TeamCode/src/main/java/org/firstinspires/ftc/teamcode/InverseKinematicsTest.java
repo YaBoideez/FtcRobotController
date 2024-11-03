@@ -208,8 +208,12 @@ public class InverseKinematicsTest extends LinearOpMode {
             Shoulder.setTargetPosition(ShoulderTargetPos);
             Elbow.setTargetPosition(ElbowTargetPos);
 
+            Shoulder.setPower(.3);
+            Elbow.setPower(.3);
+
             Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
 
             zTarget += 5;
 
