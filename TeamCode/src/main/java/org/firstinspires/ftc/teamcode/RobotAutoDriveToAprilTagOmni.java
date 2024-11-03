@@ -102,7 +102,11 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
 
     final double MAX_AUTO_SPEED = 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
     final double MAX_AUTO_STRAFE= 0.5;   //  Clip the strafing speed to this max value (adjust for your robot)
-    final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)
+    final double MAX_AUTO_TURN  = 0.3;//  Clip the turn speed to this max value (adjust for your robot)
+
+    // Arm segment lengths
+    final double ARM_SEGMENT_1_LENGTH = 33.0; // in cm
+    final double ARM_SEGMENT_2_LENGTH = 35.5; // in cm
 
     private DcMotor MotorFL   = null;  //  Used to control the left front drive wheel
     private DcMotor MotorFR  = null;  //  Used to control the right front drive wheel
@@ -167,13 +171,13 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         Wrist.setPosition(currentServoPosition);
         waitForStart();
 
-        int newShoulderTarget;
-        int newElbowTarget;
+        //int newShoulderTarget;
+        //int newElbowTarget;
 
         while (opModeIsActive())
         {
 
-            double deltaDegree = gamepad2.right_stick_y * 5;
+            /*double deltaDegree = gamepad2.right_stick_y * 5;
             newShoulderTarget = Shoulder.getCurrentPosition() + (int)(deltaDegree*58.678);
             if (gamepad2.left_bumper) {
                 newElbowTarget = Elbow.getCurrentPosition() + (155);
@@ -191,10 +195,42 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
 
             Shoulder.setPower(.5);
             Elbow.setPower(.5);
+            */
+            // Calculate target position from joystick input for the arm
+            double targetX = gamepad2.left_stick_y * ARM_SEGMENT_1_LENGTH;
+            double targetY = gamepad2.right_stick_y * ARM_SEGMENT_2_LENGTH;
+
+            double[] jointAngles = calculateIK(targetX, targetY);
+
+            if (jointAngles != null) {
+                int shoulderTarget = (int) jointAngles[0];
+                int elbowTarget = (int) jointAngles[1];
+
+                // Set motor target positions based on calculated angles
+                Shoulder.setTargetPosition(shoulderTarget);
+                Elbow.setTargetPosition(elbowTarget);
+
+                // Set motors to RUN_TO_POSITION mode
+                Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                // Apply power to move to the target positions
+                Shoulder.setPower(0.5);
+                Elbow.setPower(0.5);
+            } else {
+                // If out of reach, optionally add code to handle it
+                telemetry.addData("Status", "Target out of reach");
+                telemetry.update();
+            }
 
 
-            telemetry.addData("Shoulder", Shoulder.getCurrentPosition());
-            telemetry.addData("Elbow", Elbow.getCurrentPosition());
+
+
+            telemetry.addData("Shoulder Target", Shoulder.getTargetPosition());
+            telemetry.addData("Elbow Target", Elbow.getTargetPosition());
+            telemetry.addData("Shoulder Position", Shoulder.getCurrentPosition());
+            telemetry.addData("Elbow Position", Elbow.getCurrentPosition());
+            telemetry.update();
             Open_Close_Claw();
             Rotate_wrist();
             targetFound = false;
@@ -369,25 +405,37 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
 
 
     private void Open_Close_Claw() {
-        if (gamepad2.cross) {
-            Gripper.setPosition(1);
-        }
-        if (gamepad2.triangle) {
-            Gripper.setPosition(0.5);
+        if (gamepad2.x) {
+            Gripper.setPosition(1.0); // Open
+        } else if (gamepad2.y) {
+            Gripper.setPosition(0.0); // Close
         }
     }
+    private double[] calculateIK(double targetX, double targetY) {
+        double L1 = ARM_SEGMENT_1_LENGTH;
+        double L2 = ARM_SEGMENT_2_LENGTH;
+        double distance = Math.sqrt(targetX * targetX + targetY * targetY);
 
-    private void MoveArmOnXZ_Plane() {
+        if (distance > (L1 + L2)) return null; // Out of reach
 
+        double angle2 = Math.acos((targetX * targetX + targetY * targetY - L1 * L1 - L2 * L2) / (2 * L1 * L2));
+        double angle1 = Math.atan2(targetY, targetX) - Math.atan2(L2 * Math.sin(angle2), L1 + L2 * Math.cos(angle2));
 
+        int shoulderPosition = (int) Math.toDegrees(angle1);
+        int elbowPosition = (int) Math.toDegrees(angle2);
+
+        return new double[]{shoulderPosition, elbowPosition};
     }
+
 
     private void Rotate_wrist() {
-        if (gamepad2.circle) {
-            Wrist.setPosition(currentServoPosition += .1);
+        if (gamepad2.a) {
+            currentServoPosition = Math.min(currentServoPosition + 1, 180);
+            Wrist.setPosition(currentServoPosition / 180.0);
+        } else if (gamepad2.b) {
+            currentServoPosition = Math.max(currentServoPosition - 1, 0);
+            Wrist.setPosition(currentServoPosition / 180.0);
         }
-        if (gamepad2.square) {
-            Wrist.setPosition(currentServoPosition -= .1);
-        }
+
     }
 }
