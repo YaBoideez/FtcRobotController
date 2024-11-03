@@ -82,10 +82,10 @@ public class InverseKinematicsTest extends LinearOpMode {
 
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
-        MotorFL = hardwareMap.get(DcMotor.class, "left_front_drive");
-        MotorBL = hardwareMap.get(DcMotor.class, "left_back_drive");
-        MotorFR = hardwareMap.get(DcMotor.class, "right_front_drive");
-        MotorBR = hardwareMap.get(DcMotor.class, "right_back_drive");
+        MotorFL = hardwareMap.get(DcMotor.class, "MotorFL");
+        MotorBL = hardwareMap.get(DcMotor.class, "MotorBL");
+        MotorFR = hardwareMap.get(DcMotor.class, "MotorFR");
+        MotorBR = hardwareMap.get(DcMotor.class, "MotorBR");
         Shoulder = hardwareMap.get(DcMotor.class, "Shoulder");
         Elbow = hardwareMap.get(DcMotor.class, "Elbow");
 
