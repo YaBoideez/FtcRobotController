@@ -69,7 +69,7 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
 
     static final double     FORWARD_SPEED = 0.6;
     static final double     TURN_SPEED    = 0.5;
-    static final double     STRAFE_SPEED    = 0.5;
+    static final double     STRAFE_SPEED    = 0.3;
 
     @Override
     public void runOpMode() {
@@ -99,12 +99,12 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         // Step through each leg of the path, ensuring that the OpMode has not been stopped along the way.
 
         // Step 1:  Strafe for 3 seconds
-        MotorFR.setPower(STRAFE_SPEED);
+        MotorFR.setPower(-STRAFE_SPEED);
         MotorBR.setPower(STRAFE_SPEED);
         MotorFL.setPower(STRAFE_SPEED);
-        MotorBL.setPower(STRAFE_SPEED);
+        MotorBL.setPower(-STRAFE_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 3.0)) {
+        while (opModeIsActive() && (runtime.seconds() < 1.5)) {
             telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
