@@ -75,6 +75,8 @@ public class InverseKinematicsTest extends LinearOpMode {
     private DcMotor Shoulder = null;
     private DcMotor Elbow = null;
 
+    private double xTarget = 0.0;  // Default target x position
+    private double zTarget = 30.0;  // Default target z position
 
     @Override
     public void runOpMode() {
@@ -155,15 +157,29 @@ public class InverseKinematicsTest extends LinearOpMode {
             }
 
             // Trigger IK calculation with gamepad2.x (instead of gamepad2.square)
-            if (gamepad2.x) {
-                calculationIK();
+            xTarget += gamepad2.left_stick_y * 5;  // Control x with left stick y-axis
+            zTarget += gamepad2.right_stick_y * 5; // Control z with right stick y-axis
+
+            double[] angles = calculateIK(xTarget, zTarget);
+            if (angles != null) {
+                // Convert angles to encoder target positions
+                int ShoulderTargetPos = (int) (angles[0] * 58.678);   // Shoulder motor conversion factor
+                int ElbowTargetPos = (int) (angles[1] * 30.9576);     // Elbow motor conversion factor
+
+                // Set motor target positions and power
+                Shoulder.setTargetPosition(ShoulderTargetPos);
+                Elbow.setTargetPosition(ElbowTargetPos);
+                Shoulder.setPower(0.3);
+                Elbow.setPower(0.3);
             }
+
 
 
             telemetry.addData("Shoulder Target Pos", Shoulder.getTargetPosition());
             telemetry.addData("Shoulder Current Pos", Shoulder.getCurrentPosition());
             telemetry.addData("Elbow Target Pos", Elbow.getTargetPosition());
             telemetry.addData("Elbow Current Pos", Elbow.getCurrentPosition());
+
 
 
             /*if (gamepad2.dpad_up) {
@@ -194,82 +210,31 @@ public class InverseKinematicsTest extends LinearOpMode {
         }
     }
 
-    public void calculationIK() {
-        // Arm segment lengths
-        double L1 = 33.0;
-        double L2 = 35.5;
-
-        // Fully extended position
-        double xMax = 68.5;
-        double zMax = 0;
-
-        // Target position
-        double xTarget = 20;  // Set your target x here
-        double zTarget = 20;     // Set your target z here
-
-        // Check if target is fully extended
-        if (Math.abs(xTarget - xMax) < 1e-2 && Math.abs(zTarget - zMax) < 1e-2) {
-            // If the arm is fully extended, set angles to 0
-            int ShoulderTargetPos = 0;  // Shoulder at 0 degrees
-            int ElbowTargetPos = 0;     // Elbow at 0 degrees
-
-            // Set target positions and move motors
-            Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            Shoulder.setTargetPosition(ShoulderTargetPos);
-            Elbow.setTargetPosition(ElbowTargetPos);
-            Shoulder.setPower(0.3);
-            Elbow.setPower(0.3);
-
-            telemetry.addData("Fully Extended", "Arm is fully extended.");
-            telemetry.addData("Shoulder Target", ShoulderTargetPos);
-            telemetry.addData("Elbow Target", ElbowTargetPos);
-            telemetry.update();
-
-        } else {
-            // Normal inverse kinematics calculation
-
-            if (gamepad2.right_bumper){
-                xTarget +=1;
-            }
-            if (gamepad2.left_bumper){
-                xTarget -=1;
-            }
+        public double[] calculateIK(double xTarget, double zTarget) {
+            double L1 = 33.0;
+            double L2 = 35.5;
 
             double distanceToTarget = Math.sqrt(xTarget * xTarget + zTarget * zTarget);
 
             if (distanceToTarget > (L1 + L2)) {
                 telemetry.addData("Error", "Target is out of reach.");
                 telemetry.update();
-            } else {
-                double cosTheta2 = (L1 * L1 + L2 * L2 - distanceToTarget * distanceToTarget) / (2 * L1 * L2);
-                double theta2 = Math.acos(cosTheta2);
-
-                double k1 = L1 + L2 * Math.cos(theta2);
-                double k2 = L2 * Math.sin(theta2);
-                double theta1 = Math.atan2(zTarget, xTarget) - Math.atan2(k2, k1);
-
-                double theta1Deg = Math.toDegrees(theta1) ;
-                double theta2Deg = Math.toDegrees(theta2) - 180;
-
-                int ShoulderTargetPos = (int) (theta1Deg * 58.678);
-                int ElbowTargetPos = (int) (theta2Deg * 30.9576);
-
-                Shoulder.setTargetPosition(ShoulderTargetPos);
-                Elbow.setTargetPosition(ElbowTargetPos);
-                Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                Shoulder.setPower(0.3);
-                Elbow.setPower(0.3);
-
-                telemetry.addData("Theta1", theta1Deg);
-                telemetry.addData("Theta2", theta2Deg);
-                telemetry.addData("Shoulder Target", ShoulderTargetPos);
-                telemetry.addData("Elbow Target", ElbowTargetPos);
-                telemetry.update();
+                return null;  // Target unreachable
             }
+
+            double cosTheta2 = (L1 * L1 + L2 * L2 - distanceToTarget * distanceToTarget) / (2 * L1 * L2);
+            double theta2 = Math.acos(cosTheta2);
+
+            double k1 = L1 + L2 * Math.cos(theta2);
+            double k2 = L2 * Math.sin(theta2);
+            double theta1 = Math.atan2(zTarget, xTarget) - Math.atan2(k2, k1);
+
+            double theta1Deg = Math.toDegrees(theta1);
+            double theta2Deg = Math.toDegrees(theta2) - 180;
+
+            return new double[] { theta1Deg, theta2Deg };
         }
-    }
+
     /*public void setArmPosition(double x, double z) {
         // Lengths of arm segments
         double L1 = 33.0;
