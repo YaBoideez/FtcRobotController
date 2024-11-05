@@ -103,14 +103,14 @@ public class InverseKinematicsTest extends LinearOpMode {
         MotorFR.setDirection(DcMotor.Direction.FORWARD);
         MotorBR.setDirection(DcMotor.Direction.FORWARD);
 
-        Shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        Elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+
+        setArmPosition(0, 20);
 
         waitForStart();
         runtime.reset();
@@ -144,9 +144,23 @@ public class InverseKinematicsTest extends LinearOpMode {
                 rightBackPower /= max;
             }
 
-            if (gamepad2.square){
+            // Reset encoders if dpad_down is pressed
+            if (gamepad2.dpad_down) {
+                Shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                Elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            }
+
+            // Trigger IK calculation with gamepad2.x (instead of gamepad2.square)
+            if (gamepad2.x) {
                 calculationIK();
             }
+
+            if (gamepad2.dpad_up) {
+                // Move to fully extended position
+                setArmPosition(68.5, 0);  // Fully extend the arm
+            }
+
+
 
             /*
             leftFrontPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
@@ -170,7 +184,7 @@ public class InverseKinematicsTest extends LinearOpMode {
     }
 
     public void calculationIK() {
-        //Law of cosines to find the angle at the elbow (theta_2)
+        // Law of cosines to find the angle at the elbow (theta_2)
         double L1 = 33.0;  // Length of the first arm segment
         double L2 = 35.5;  // Length of the second arm segment
 
@@ -183,40 +197,71 @@ public class InverseKinematicsTest extends LinearOpMode {
 
         // Check if the point is reachable
         if (distanceToTarget > (L1 + L2)) {
-            System.out.println("Target is out of reach.");
+            telemetry.addData("Error", "Target is out of reach.");
+            telemetry.update();
         } else {
             // Law of cosines to find the angle at the elbow (theta_2)
             double cosTheta2 = (L1 * L1 + L2 * L2 - distanceToTarget * distanceToTarget) / (2 * L1 * L2);
             double theta2 = Math.acos(cosTheta2);  // Elbow angle in radians
 
             // Using trigonometric relationships to find the angle at the shoulder (theta_1)
-            // Intermediate angles for clarity
             double k1 = L1 + L2 * Math.cos(theta2);
             double k2 = L2 * Math.sin(theta2);
-
             double theta1 = Math.atan2(zTarget, xTarget) - Math.atan2(k2, k1);  // Shoulder angle in radians
 
-            // Convert radians to degrees for easier interpretation
+            // Convert radians to degrees
             double theta1Deg = Math.toDegrees(theta1);
             double theta2Deg = Math.toDegrees(theta2);
 
-            //Convert degrees to ticks
-            int ShoulderTargetPos = (int) (theta1Deg*58.678);
-            int ElbowTargetPos = (int) (theta2Deg*30.95);
+            // Convert degrees to ticks
+            int ShoulderTargetPos = (int) (theta1Deg * 58.678);  // Adjusted ticks conversion factor
+            int ElbowTargetPos = (int) (theta2Deg * 30.9576);
 
+            // Set target positions and move motors
             Shoulder.setTargetPosition(ShoulderTargetPos);
             Elbow.setTargetPosition(ElbowTargetPos);
 
-            Shoulder.setPower(.3);
-            Elbow.setPower(.3);
+            Shoulder.setPower(0.3);
+            Elbow.setPower(0.3);
 
             Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
+            // Display position and target info on telemetry
+            telemetry.addData("Theta1", theta1Deg);
+            telemetry.addData("Theta2", theta2Deg);
+            telemetry.addData("Shoulder Target", ShoulderTargetPos);
+            telemetry.addData("Elbow Target", ElbowTargetPos);
+            telemetry.update();
+        }
+    }
+    public void setArmPosition(double x, double z) {
+        // Lengths of arm segments
+        double L1 = 33.0;
+        double L2 = 35.5;
 
-            zTarget += 5;
+        double distanceToTarget = Math.sqrt(x * x + z * z);
 
+        if (distanceToTarget > (L1 + L2)) {
+            telemetry.addData("Status", "Target out of reach");
+        } else {
+            double cosTheta2 = (L1 * L1 + L2 * L2 - distanceToTarget * distanceToTarget) / (2 * L1 * L2);
+            double theta2 = Math.acos(cosTheta2);
+            double k1 = L1 + L2 * Math.cos(theta2);
+            double k2 = L2 * Math.sin(theta2);
+            double theta1 = Math.atan2(z, x) - Math.atan2(k2, k1);
 
+            int shoulderTargetPos = (int) Math.toDegrees(theta1) * (int) 58.678;  // Convert to ticks
+            int elbowTargetPos = (int) Math.toDegrees(theta2) * (int) 30.9576;
+
+            Shoulder.setTargetPosition(shoulderTargetPos);
+            Elbow.setTargetPosition(elbowTargetPos);
+
+            Shoulder.setPower(0.3);
+            Elbow.setPower(0.3);
+
+            Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
     }
 }
