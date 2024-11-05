@@ -110,7 +110,7 @@ public class InverseKinematicsTest extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        setArmPosition(0, 20);
+        //setArmPosition(0, 20);
 
         waitForStart();
         runtime.reset();
