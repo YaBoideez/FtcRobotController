@@ -69,7 +69,7 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
 
     static final double     FORWARD_SPEED = 0.6;
     static final double     TURN_SPEED    = 0.5;
-    static final double     STRAFE_SPEED    = 0.3;
+    static final double     STRAFE_SPEED    = 0.5;
 
     @Override
     public void runOpMode() {
@@ -104,7 +104,7 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         MotorFL.setPower(STRAFE_SPEED);
         MotorBL.setPower(-STRAFE_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 1.5)) {
+        while (opModeIsActive() && (runtime.seconds() < 2.5)) {
             telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }

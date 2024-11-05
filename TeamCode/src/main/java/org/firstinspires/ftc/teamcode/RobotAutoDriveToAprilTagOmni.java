@@ -168,6 +168,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         telemetry.addData("Camera preview on/off", "3 dots, Camera Stream");
         telemetry.addData(">", "Touch START to start OpMode");
         telemetry.update();
+        currentServoPosition = (int) 1;
         Wrist.setPosition(currentServoPosition);
         waitForStart();
 
@@ -250,6 +251,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             telemetry.addData("Elbow Target", Elbow.getTargetPosition());
             telemetry.addData("Shoulder Position", Shoulder.getCurrentPosition());
             telemetry.addData("Elbow Position", Elbow.getCurrentPosition());
+            telemetry.addData("Wrist", Wrist.getPosition());
             telemetry.update();
             Open_Close_Claw();
             Rotate_wrist();
@@ -305,9 +307,9 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             } else {
 
                 // drive using manual POV Joystick mode.  Slow things down to make the robot more controlable.
-                drive  = -gamepad1.left_stick_y  /1.5;  // Reduce drive rate to 50%.
-                strafe = -gamepad1.left_stick_x  / 1.5;  // Reduce strafe rate to 50%.
-                turn   = -gamepad1.right_stick_x / 2.0;  // Reduce turn rate to 33%.
+                drive  = -gamepad1.left_stick_y  /1;  // Reduce drive rate to 50%.
+                strafe = -gamepad1.left_stick_x  / 1;  // Reduce strafe rate to 50%.
+                turn   = -gamepad1.right_stick_x / 1.25;  // Reduce turn rate to 33%.
                // telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
             }
             telemetry.update();
@@ -463,10 +465,10 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
 
     private void Rotate_wrist() {
         if (gamepad2.a) {
-            currentServoPosition = Math.min(currentServoPosition + 1, 180);
+            currentServoPosition = Math.min(currentServoPosition + 4, 180);
             Wrist.setPosition(currentServoPosition / 180.0);
         } else if (gamepad2.b) {
-            currentServoPosition = Math.max(currentServoPosition - 1, 0);
+            currentServoPosition = Math.max(currentServoPosition - 4, 0);
             Wrist.setPosition(currentServoPosition / 180.0);
         }
 
