@@ -117,6 +117,10 @@ public class InverseKinematicsTest extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            //Shoulder.setPower(gamepad2.right_stick_y);
+            //Elbow.setPower(gamepad2.left_stick_y);
+
+
             double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
@@ -154,6 +158,13 @@ public class InverseKinematicsTest extends LinearOpMode {
             if (gamepad2.x) {
                 calculationIK();
             }
+
+
+            telemetry.addData("Shoulder Target Pos", Shoulder.getTargetPosition());
+            telemetry.addData("Shoulder Current Pos", Shoulder.getCurrentPosition());
+            telemetry.addData("Elbow Target Pos", Elbow.getTargetPosition());
+            telemetry.addData("Elbow Current Pos", Elbow.getCurrentPosition());
+
 
             /*if (gamepad2.dpad_up) {
                 // Move to fully extended position
@@ -193,8 +204,8 @@ public class InverseKinematicsTest extends LinearOpMode {
         double zMax = 0;
 
         // Target position
-        double xTarget = 68.5;  // Set your target x here
-        double zTarget = 0;     // Set your target z here
+        double xTarget = 20;  // Set your target x here
+        double zTarget = 20;     // Set your target z here
 
         // Check if target is fully extended
         if (Math.abs(xTarget - xMax) < 1e-2 && Math.abs(zTarget - zMax) < 1e-2) {
@@ -203,6 +214,8 @@ public class InverseKinematicsTest extends LinearOpMode {
             int ElbowTargetPos = 0;     // Elbow at 0 degrees
 
             // Set target positions and move motors
+            Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             Shoulder.setTargetPosition(ShoulderTargetPos);
             Elbow.setTargetPosition(ElbowTargetPos);
             Shoulder.setPower(0.3);
@@ -215,6 +228,14 @@ public class InverseKinematicsTest extends LinearOpMode {
 
         } else {
             // Normal inverse kinematics calculation
+
+            if (gamepad2.right_bumper){
+                xTarget +=1;
+            }
+            if (gamepad2.left_bumper){
+                xTarget -=1;
+            }
+
             double distanceToTarget = Math.sqrt(xTarget * xTarget + zTarget * zTarget);
 
             if (distanceToTarget > (L1 + L2)) {
@@ -228,16 +249,16 @@ public class InverseKinematicsTest extends LinearOpMode {
                 double k2 = L2 * Math.sin(theta2);
                 double theta1 = Math.atan2(zTarget, xTarget) - Math.atan2(k2, k1);
 
-                double theta1Deg = Math.toDegrees(theta1);
-                double theta2Deg = Math.toDegrees(theta2);
-
-                if (theta1Deg < 0) theta1Deg += 180;
+                double theta1Deg = Math.toDegrees(theta1) ;
+                double theta2Deg = Math.toDegrees(theta2) - 180;
 
                 int ShoulderTargetPos = (int) (theta1Deg * 58.678);
                 int ElbowTargetPos = (int) (theta2Deg * 30.9576);
 
                 Shoulder.setTargetPosition(ShoulderTargetPos);
                 Elbow.setTargetPosition(ElbowTargetPos);
+                Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 Shoulder.setPower(0.3);
                 Elbow.setPower(0.3);
 
