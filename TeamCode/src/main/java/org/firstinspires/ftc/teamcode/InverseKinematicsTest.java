@@ -34,8 +34,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import java.lang.annotation.Target;
-
 /*
  * This file contains an example of a Linear "OpMode".
  * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
@@ -157,15 +155,10 @@ public class InverseKinematicsTest extends LinearOpMode {
                 calculationIK();
             }
 
-            if (gamepad2.dpad_up) {
+            /*if (gamepad2.dpad_up) {
                 // Move to fully extended position
                 setArmPosition(68.5, 0);  // Fully extend the arm
-            }
-
-            telemetry.addData("Shoulder Encoder Current:", Shoulder.getCurrentPosition());
-            telemetry.addData("Elbow Encoder Current:", Elbow.getCurrentPosition());
-            telemetry.addData("Shoulder Encoder Target:", Shoulder.getTargetPosition());
-            telemetry.addData("Elbow Encoder Target:", Elbow.getTargetPosition());
+            }*\
 
 
 
@@ -191,58 +184,72 @@ public class InverseKinematicsTest extends LinearOpMode {
     }
 
     public void calculationIK() {
-        // Law of cosines to find the angle at the elbow (theta_2)
-        double L1 = 33.0;  // Length of the first arm segment
-        double L2 = 35.5;  // Length of the second arm segment
+        // Arm segment lengths
+        double L1 = 33.0;
+        double L2 = 35.5;
+
+        // Fully extended position
+        double xMax = 68.5;
+        double zMax = 0;
 
         // Target position
-        double xTarget = 68.5;
-        double zTarget = 0;  // Starting y (14) + 20 cm upwards
+        double xTarget = 68.5;  // Set your target x here
+        double zTarget = 0;     // Set your target z here
 
-        // Calculate the distance to the target point
-        double distanceToTarget = Math.sqrt(xTarget * xTarget + zTarget * zTarget);
-
-        // Check if the point is reachable
-        if (distanceToTarget > (L1 + L2)) {
-            telemetry.addData("Error", "Target is out of reach.");
-            telemetry.update();
-        } else {
-            // Law of cosines to find the angle at the elbow (theta_2)
-            double cosTheta2 = (L1 * L1 + L2 * L2 - distanceToTarget * distanceToTarget) / (2 * L1 * L2);
-            double theta2 = Math.acos(cosTheta2);  // Elbow angle in radians
-
-            // Using trigonometric relationships to find the angle at the shoulder (theta_1)
-            double k1 = L1 + L2 * Math.cos(theta2);
-            double k2 = L2 * Math.sin(theta2);
-            double theta1 = Math.atan2(zTarget, xTarget) - Math.atan2(k2, k1);  // Shoulder angle in radians
-
-            // Convert radians to degrees
-            double theta1Deg = Math.toDegrees(theta1);
-            double theta2Deg = Math.toDegrees(theta2);
-
-            // Convert degrees to ticks
-            int ShoulderTargetPos = (int) (theta1Deg * 58.678);  // Adjusted ticks conversion factor
-            int ElbowTargetPos = (int) (theta2Deg * 30.9576);
+        // Check if target is fully extended
+        if (Math.abs(xTarget - xMax) < 1e-2 && Math.abs(zTarget - zMax) < 1e-2) {
+            // If the arm is fully extended, set angles to 0
+            int ShoulderTargetPos = 0;  // Shoulder at 0 degrees
+            int ElbowTargetPos = 0;     // Elbow at 0 degrees
 
             // Set target positions and move motors
             Shoulder.setTargetPosition(ShoulderTargetPos);
             Elbow.setTargetPosition(ElbowTargetPos);
-
             Shoulder.setPower(0.3);
             Elbow.setPower(0.3);
 
-            Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            // Display position and target info on telemetry
-            telemetry.addData("Theta1", theta1Deg);
-            telemetry.addData("Theta2", theta2Deg);
+            telemetry.addData("Fully Extended", "Arm is fully extended.");
             telemetry.addData("Shoulder Target", ShoulderTargetPos);
             telemetry.addData("Elbow Target", ElbowTargetPos);
             telemetry.update();
+
+        } else {
+            // Normal inverse kinematics calculation
+            double distanceToTarget = Math.sqrt(xTarget * xTarget + zTarget * zTarget);
+
+            if (distanceToTarget > (L1 + L2)) {
+                telemetry.addData("Error", "Target is out of reach.");
+                telemetry.update();
+            } else {
+                double cosTheta2 = (L1 * L1 + L2 * L2 - distanceToTarget * distanceToTarget) / (2 * L1 * L2);
+                double theta2 = Math.acos(cosTheta2);
+
+                double k1 = L1 + L2 * Math.cos(theta2);
+                double k2 = L2 * Math.sin(theta2);
+                double theta1 = Math.atan2(zTarget, xTarget) - Math.atan2(k2, k1);
+
+                double theta1Deg = Math.toDegrees(theta1);
+                double theta2Deg = Math.toDegrees(theta2);
+
+                if (theta1Deg < 0) theta1Deg += 180;
+
+                int ShoulderTargetPos = (int) (theta1Deg * 58.678);
+                int ElbowTargetPos = (int) (theta2Deg * 30.9576);
+
+                Shoulder.setTargetPosition(ShoulderTargetPos);
+                Elbow.setTargetPosition(ElbowTargetPos);
+                Shoulder.setPower(0.3);
+                Elbow.setPower(0.3);
+
+                telemetry.addData("Theta1", theta1Deg);
+                telemetry.addData("Theta2", theta2Deg);
+                telemetry.addData("Shoulder Target", ShoulderTargetPos);
+                telemetry.addData("Elbow Target", ElbowTargetPos);
+                telemetry.update();
+            }
         }
     }
-    public void setArmPosition(double x, double z) {
+    /*public void setArmPosition(double x, double z) {
         // Lengths of arm segments
         double L1 = 33.0;
         double L2 = 35.5;
@@ -270,5 +277,5 @@ public class InverseKinematicsTest extends LinearOpMode {
             Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
-    }
+    }*/
 }
