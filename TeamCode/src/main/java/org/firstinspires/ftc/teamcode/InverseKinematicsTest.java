@@ -34,6 +34,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.lang.annotation.Target;
+
 /*
  * This file contains an example of a Linear "OpMode".
  * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
@@ -160,6 +162,11 @@ public class InverseKinematicsTest extends LinearOpMode {
                 setArmPosition(68.5, 0);  // Fully extend the arm
             }
 
+            telemetry.addData("Shoulder Encoder Current:", Shoulder.getCurrentPosition());
+            telemetry.addData("Elbow Encoder Current:", Elbow.getCurrentPosition());
+            telemetry.addData("Shoulder Encoder Target:", Shoulder.getTargetPosition());
+            telemetry.addData("Elbow Encoder Target:", Elbow.getTargetPosition());
+
 
 
             /*
@@ -189,8 +196,8 @@ public class InverseKinematicsTest extends LinearOpMode {
         double L2 = 35.5;  // Length of the second arm segment
 
         // Target position
-        double xTarget = 0;
-        double zTarget = 34;  // Starting y (14) + 20 cm upwards
+        double xTarget = 68.5;
+        double zTarget = 0;  // Starting y (14) + 20 cm upwards
 
         // Calculate the distance to the target point
         double distanceToTarget = Math.sqrt(xTarget * xTarget + zTarget * zTarget);
