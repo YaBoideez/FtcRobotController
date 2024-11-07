@@ -138,6 +138,13 @@ public class InverseKinematicsTest extends LinearOpMode {
             double lateral = gamepad1.left_stick_x;
             double yaw = gamepad1.right_stick_x;
 
+            if (gamepad2.left_bumper){
+                yaw += .5;
+            }
+            if (gamepad2.right_bumper){
+                yaw -= .5;
+            }
+
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
             double leftFrontPower = axial + lateral + yaw;
@@ -178,6 +185,16 @@ public class InverseKinematicsTest extends LinearOpMode {
                 zTarget = 57.16;
             }
 
+            if (gamepad2.dpad_down) {
+                Gripper.setPosition(0.8);
+                sleep(100);
+                zTarget -= 3;
+                sleep(100);
+                Gripper.setPosition(1);
+                sleep(100);
+                zTarget += 5;
+            }
+
             // Trigger IK calculation with gamepad2.x (instead of gamepad2.square)
 
             calculationIK(xTarget, zTarget);
@@ -189,7 +206,6 @@ public class InverseKinematicsTest extends LinearOpMode {
             telemetry.addData("Shoulder Current Pos", Shoulder.getCurrentPosition());
             telemetry.addData("Elbow Target Pos", Elbow.getTargetPosition());
             telemetry.addData("Elbow Current Pos", Elbow.getCurrentPosition());
-
 
             /*if (gamepad2.dpad_up) {
                 // Move to fully extended position
