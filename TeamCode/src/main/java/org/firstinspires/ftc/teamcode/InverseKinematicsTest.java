@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -74,6 +75,10 @@ public class InverseKinematicsTest extends LinearOpMode {
     private DcMotor MotorBR = null;
     private DcMotor Shoulder = null;
     private DcMotor Elbow = null;
+    private Servo Wrist = null;
+    private Servo Gripper = null;
+
+    int currentServoPosition;
 
 
     @Override
@@ -87,6 +92,8 @@ public class InverseKinematicsTest extends LinearOpMode {
         MotorBR = hardwareMap.get(DcMotor.class, "MotorBR");
         Shoulder = hardwareMap.get(DcMotor.class, "Shoulder");
         Elbow = hardwareMap.get(DcMotor.class, "Elbow");
+        Wrist = hardwareMap.get(Servo.class, "Wrist");
+        Gripper = hardwareMap.get(Servo.class, "Gripper");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -114,7 +121,10 @@ public class InverseKinematicsTest extends LinearOpMode {
 
         waitForStart();
         runtime.reset();
-
+        double xTarget = 9.65;
+        double zTarget = 11.69;
+        currentServoPosition = (int) 1;
+        Wrist.setPosition(currentServoPosition);
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             //Shoulder.setPower(gamepad2.right_stick_y);
@@ -154,10 +164,25 @@ public class InverseKinematicsTest extends LinearOpMode {
                 Elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
 
-            // Trigger IK calculation with gamepad2.x (instead of gamepad2.square)
-            if (gamepad2.x) {
-                calculationIK();
+            //setting the target in XZ plane
+            xTarget += -gamepad2.left_stick_y;
+            zTarget += -gamepad2.right_stick_y;
+
+            if (gamepad2.dpad_left){
+                xTarget = 0;
+                zTarget = 20;
             }
+
+            if (gamepad2.dpad_up){
+                xTarget = 10.84;
+                zTarget = 57.16;
+            }
+
+            // Trigger IK calculation with gamepad2.x (instead of gamepad2.square)
+
+            calculationIK(xTarget, zTarget);
+            Rotate_wrist();
+            Open_Close_Claw();
 
 
             telemetry.addData("Shoulder Target Pos", Shoulder.getTargetPosition());
@@ -190,51 +215,19 @@ public class InverseKinematicsTest extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("X target", xTarget);
+            telemetry.addData("Z target", zTarget);
+
             telemetry.update();
+
+            sleep(0);
         }
     }
 
-    public void calculationIK() {
-        // Arm segment lengths
-        double L1 = 33.0;
-        double L2 = 35.5;
-
-        // Fully extended position
-        double xMax = 68.5;
-        double zMax = 0;
-
-        // Target position
-        double xTarget = 20;  // Set your target x here
-        double zTarget = 20;     // Set your target z here
-
-        // Check if target is fully extended
-        if (Math.abs(xTarget - xMax) < 1e-2 && Math.abs(zTarget - zMax) < 1e-2) {
-            // If the arm is fully extended, set angles to 0
-            int ShoulderTargetPos = 0;  // Shoulder at 0 degrees
-            int ElbowTargetPos = 0;     // Elbow at 0 degrees
-
-            // Set target positions and move motors
-            Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            Shoulder.setTargetPosition(ShoulderTargetPos);
-            Elbow.setTargetPosition(ElbowTargetPos);
-            Shoulder.setPower(0.3);
-            Elbow.setPower(0.3);
-
-            telemetry.addData("Fully Extended", "Arm is fully extended.");
-            telemetry.addData("Shoulder Target", ShoulderTargetPos);
-            telemetry.addData("Elbow Target", ElbowTargetPos);
-            telemetry.update();
-
-        } else {
+    public void calculationIK(double xTarget, double zTarget) {
+        double L1 = 28.58;
+        double L2 = 33.02;
             // Normal inverse kinematics calculation
-
-            if (gamepad2.right_bumper){
-                xTarget +=1;
-            }
-            if (gamepad2.left_bumper){
-                xTarget -=1;
-            }
 
             double distanceToTarget = Math.sqrt(xTarget * xTarget + zTarget * zTarget);
 
@@ -249,7 +242,7 @@ public class InverseKinematicsTest extends LinearOpMode {
                 double k2 = L2 * Math.sin(theta2);
                 double theta1 = Math.atan2(zTarget, xTarget) - Math.atan2(k2, k1);
 
-                double theta1Deg = Math.toDegrees(theta1) ;
+                double theta1Deg = Math.toDegrees(theta1);
                 double theta2Deg = Math.toDegrees(theta2) - 180;
 
                 int ShoulderTargetPos = (int) (theta1Deg * 58.678);
@@ -259,8 +252,8 @@ public class InverseKinematicsTest extends LinearOpMode {
                 Elbow.setTargetPosition(ElbowTargetPos);
                 Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                Shoulder.setPower(0.3);
-                Elbow.setPower(0.3);
+                Shoulder.setPower(0.8);
+                Elbow.setPower(0.8);
 
                 telemetry.addData("Theta1", theta1Deg);
                 telemetry.addData("Theta2", theta2Deg);
@@ -268,35 +261,25 @@ public class InverseKinematicsTest extends LinearOpMode {
                 telemetry.addData("Elbow Target", ElbowTargetPos);
                 telemetry.update();
             }
+
+    }
+
+    private void Rotate_wrist() {
+        if (gamepad2.a) {
+            currentServoPosition = Math.min(currentServoPosition + 4, 180);
+            Wrist.setPosition(currentServoPosition / 180.0);
+        } else if (gamepad2.b) {
+            currentServoPosition = Math.max(currentServoPosition - 4, 0);
+            Wrist.setPosition(currentServoPosition / 180.0);
+        }
+
+    }
+
+    private void Open_Close_Claw() {
+        if (gamepad2.x) {
+            Gripper.setPosition(0.8); // Open
+        } else if (gamepad2.y) {
+            Gripper.setPosition(1); // Close
         }
     }
-    /*public void setArmPosition(double x, double z) {
-        // Lengths of arm segments
-        double L1 = 33.0;
-        double L2 = 35.5;
-
-        double distanceToTarget = Math.sqrt(x * x + z * z);
-
-        if (distanceToTarget > (L1 + L2)) {
-            telemetry.addData("Status", "Target out of reach");
-        } else {
-            double cosTheta2 = (L1 * L1 + L2 * L2 - distanceToTarget * distanceToTarget) / (2 * L1 * L2);
-            double theta2 = Math.acos(cosTheta2);
-            double k1 = L1 + L2 * Math.cos(theta2);
-            double k2 = L2 * Math.sin(theta2);
-            double theta1 = Math.atan2(z, x) - Math.atan2(k2, k1);
-
-            int shoulderTargetPos = (int) Math.toDegrees(theta1) * (int) 58.678;  // Convert to ticks
-            int elbowTargetPos = (int) Math.toDegrees(theta2) * (int) 30.9576;
-
-            Shoulder.setTargetPosition(shoulderTargetPos);
-            Elbow.setTargetPosition(elbowTargetPos);
-
-            Shoulder.setPower(0.3);
-            Elbow.setPower(0.3);
-
-            Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        }
-    }*/
 }
