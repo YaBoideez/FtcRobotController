@@ -130,35 +130,99 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
             telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
+        MotorFR.setPower(0);
+        MotorBR.setPower(0);
+        MotorFL.setPower(0);
+        MotorBL.setPower(0);
 
-        // Step 1:  Rotate for 1.5 seconds
-        MotorFR.setPower(TURN_SPEED);
-        MotorBR.setPower(TURN_SPEED);
-        MotorFL.setPower(-TURN_SPEED);
-        MotorBL.setPower(-TURN_SPEED);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 0.1)) {
-            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
-            telemetry.update();
-        }
-
+        sleep(500);
 
         xTarget = 10.84;
         zTarget = 57.16;
         calculationIK(xTarget,zTarget);
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < 1)) {
-            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
+            telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
+        sleep(500);
+
+
+        // Step 1:  Rotate for 0.9 seconds
+        MotorFR.setPower(TURN_SPEED);
+        MotorBR.setPower(TURN_SPEED);
+        MotorFL.setPower(-TURN_SPEED);
+        MotorBL.setPower(-TURN_SPEED);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 0.9 )) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        MotorFR.setPower(0);
+        MotorBR.setPower(0);
+        MotorFL.setPower(0);
+        MotorBL.setPower(0);
+
+        Wrist.setPosition(1); // Open
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 1)) {
+            telemetry.addData("Path", "Leg 4: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        sleep(500);
+
 
         Gripper.setPosition(0.8); // Open
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < 1)) {
+            telemetry.addData("Path", "Leg 4: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        sleep(500);
+
+        Wrist.setPosition(.5); // Open
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 1)) {
+            telemetry.addData("Path", "Leg 4: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        sleep(500);
+
+        //Step 1:  Rotate for 0.9 seconds
+        MotorFR.setPower(-TURN_SPEED);
+        MotorBR.setPower(-TURN_SPEED);
+        MotorFL.setPower(TURN_SPEED);
+        MotorBL.setPower(TURN_SPEED);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 0.9 )) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        MotorFR.setPower(0);
+        MotorBR.setPower(0);
+        MotorFL.setPower(0);
+        MotorBL.setPower(0);
+        sleep(500);
+
+        xTarget = 10;
+        zTarget = 30;
+        calculationIK(xTarget,zTarget);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 1)) {
+            telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        sleep(500);
+
+        MotorFR.setPower(-STRAFE_SPEED);
+        MotorBR.setPower(STRAFE_SPEED);
+        MotorFL.setPower(STRAFE_SPEED);
+        MotorBL.setPower(-STRAFE_SPEED);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 3.8)) {
             telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
-
 
         // Step 2:  Stop
         MotorFR.setPower(0);
