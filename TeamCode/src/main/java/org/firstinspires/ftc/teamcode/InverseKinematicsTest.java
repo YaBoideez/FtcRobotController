@@ -139,10 +139,11 @@ public class InverseKinematicsTest extends LinearOpMode {
             double yaw = gamepad1.right_stick_x;
 
             if (gamepad2.left_bumper){
-                yaw += .5;
+                yaw += .1;
             }
             if (gamepad2.right_bumper){
-                yaw -= .5;
+                yaw -= .1;
+
             }
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
@@ -166,7 +167,7 @@ public class InverseKinematicsTest extends LinearOpMode {
             }
 
             // Reset encoders if dpad_down is pressed
-            if (gamepad2.dpad_down) {
+            if (gamepad2.dpad_right) {
                 Shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 Elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
@@ -176,28 +177,40 @@ public class InverseKinematicsTest extends LinearOpMode {
             zTarget += -gamepad2.right_stick_y;
 
             if (gamepad2.dpad_left){
-                xTarget = 0;
-                zTarget = 20;
+                Wrist.setPosition(0.50);
+                sleep(300);
+                Gripper.setPosition(1);
+                sleep(300);
+                xTarget = 5;
+                zTarget = 30;
             }
 
             if (gamepad2.dpad_up){
+                Wrist.setPosition(0.5);
+                sleep(300);
                 xTarget = 10.84;
                 zTarget = 57.16;
+                calculationIK(xTarget,zTarget);
+                sleep(800);
+                Wrist.setPosition(0.8);
             }
 
             if (gamepad2.dpad_down) {
                 Gripper.setPosition(0.8);
-                sleep(100);
+                sleep(500);
                 zTarget -= 3;
-                sleep(100);
+                calculationIK(xTarget, zTarget);
+                sleep(500);
                 Gripper.setPosition(1);
-                sleep(100);
-                zTarget += 5;
+                sleep(500);
+                zTarget += 7;
+                calculationIK(xTarget, zTarget);
             }
 
             // Trigger IK calculation with gamepad2.x (instead of gamepad2.square)
-
-            calculationIK(xTarget, zTarget);
+            if (xTarget > 0 && xTarget<49) {
+                calculationIK(xTarget, zTarget);
+            }
             Rotate_wrist();
             Open_Close_Claw();
 

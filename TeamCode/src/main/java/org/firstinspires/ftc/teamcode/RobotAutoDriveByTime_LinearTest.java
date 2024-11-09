@@ -214,7 +214,7 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         }
         sleep(500);
 
-        MotorFR.setPower(-STRAFE_SPEED);
+       /* MotorFR.setPower(-STRAFE_SPEED);
         MotorBR.setPower(STRAFE_SPEED);
         MotorFL.setPower(STRAFE_SPEED);
         MotorBL.setPower(-STRAFE_SPEED);
@@ -222,7 +222,7 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         while (opModeIsActive() && (runtime.seconds() < 3.8)) {
             telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
-        }
+        }*/
 
         // Step 2:  Stop
         MotorFR.setPower(0);
