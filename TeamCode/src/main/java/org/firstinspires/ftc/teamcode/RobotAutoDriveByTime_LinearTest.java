@@ -257,7 +257,7 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
             double theta2Deg = Math.toDegrees(theta2) - 180;
 
             int ShoulderTargetPos = (int) (theta1Deg * 73.3486);
-            int ElbowTargetPos = (int) (theta2Deg * 38.6972);
+             int ElbowTargetPos = (int) (theta2Deg * 38.6972);
 
             Shoulder.setTargetPosition(ShoulderTargetPos);
             Elbow.setTargetPosition(ElbowTargetPos);
