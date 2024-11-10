@@ -255,7 +255,7 @@ public class InverseKinematicsTest extends LinearOpMode {
 
     public void calculationIK(double xTarget, double zTarget) {
         double L1 = 28.58;
-        double L2 = 33.02;
+        double L2 = 41.92;
             // Normal inverse kinematics calculation
 
             double distanceToTarget = Math.sqrt(xTarget * xTarget + zTarget * zTarget);

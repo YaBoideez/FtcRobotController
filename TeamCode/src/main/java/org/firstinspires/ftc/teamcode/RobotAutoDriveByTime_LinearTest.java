@@ -106,7 +106,7 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         Shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        currentServoPosition = .5;
+        currentServoPosition = .2;
         Wrist.setPosition(currentServoPosition);
         Gripper.setPosition(1);
         calculationIK(xTarget,zTarget);
@@ -214,7 +214,7 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         }
         sleep(500);
 
-       /* MotorFR.setPower(-STRAFE_SPEED);
+        /*MotorFR.setPower(-STRAFE_SPEED);
         MotorBR.setPower(STRAFE_SPEED);
         MotorFL.setPower(STRAFE_SPEED);
         MotorBL.setPower(-STRAFE_SPEED);
@@ -237,7 +237,7 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
 
     public void calculationIK(double xTarget, double zTarget) {
         double L1 = 28.58;
-        double L2 = 33.02;
+        double L2 = 41.91;
         // Normal inverse kinematics calculation
 
         double distanceToTarget = Math.sqrt(xTarget * xTarget + zTarget * zTarget);
@@ -256,8 +256,8 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
             double theta1Deg = Math.toDegrees(theta1);
             double theta2Deg = Math.toDegrees(theta2) - 180;
 
-            int ShoulderTargetPos = (int) (theta1Deg * 58.678);
-            int ElbowTargetPos = (int) (theta2Deg * 30.9576);
+            int ShoulderTargetPos = (int) (theta1Deg * 73.3486);
+            int ElbowTargetPos = (int) (theta2Deg * 38.6972);
 
             Shoulder.setTargetPosition(ShoulderTargetPos);
             Elbow.setTargetPosition(ElbowTargetPos);
