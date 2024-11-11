@@ -75,6 +75,7 @@ public class InverseKinematicsTest extends LinearOpMode {
     private DcMotor MotorBR = null;
     private DcMotor Shoulder = null;
     private DcMotor Elbow = null;
+    private DcMotor Arm_extenstion = null;
     private Servo Wrist = null;
     private Servo Gripper = null;
 
@@ -92,6 +93,7 @@ public class InverseKinematicsTest extends LinearOpMode {
         MotorBR = hardwareMap.get(DcMotor.class, "MotorBR");
         Shoulder = hardwareMap.get(DcMotor.class, "Shoulder");
         Elbow = hardwareMap.get(DcMotor.class, "Elbow");
+        Arm_extenstion = hardwareMap.get(DcMotor.class, "Arm_extenstion");
         Wrist = hardwareMap.get(Servo.class, "Wrist");
         Gripper = hardwareMap.get(Servo.class, "Gripper");
 
@@ -121,8 +123,8 @@ public class InverseKinematicsTest extends LinearOpMode {
 
         waitForStart();
         runtime.reset();
-        double xTarget = 9.65;
-        double zTarget = 11.69;
+        double xTarget = 10;
+        double zTarget = 40;
         currentServoPosition = (int) 1;
         Wrist.setPosition(currentServoPosition);
         // run until the end of the match (driver presses STOP)
@@ -166,6 +168,8 @@ public class InverseKinematicsTest extends LinearOpMode {
                 rightBackPower /= max;
             }
 
+            Arm_extenstion.setPower(gamepad2.right_trigger);
+
             // Reset encoders if dpad_down is pressed
             if (gamepad2.dpad_right) {
                 Shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -188,8 +192,8 @@ public class InverseKinematicsTest extends LinearOpMode {
             if (gamepad2.dpad_up){
                 Wrist.setPosition(0.5);
                 sleep(300);
-                xTarget = 10.84;
-                zTarget = 57.16;
+                xTarget = -3.6312;
+                zTarget = 67.1264;
                 calculationIK(xTarget,zTarget);
                 sleep(800);
                 Wrist.setPosition(0.8);
@@ -254,7 +258,7 @@ public class InverseKinematicsTest extends LinearOpMode {
     }
 
     public void calculationIK(double xTarget, double zTarget) {
-        double L1 = 28.58;
+        double L1 = 28.58; //
         double L2 = 41.92;
             // Normal inverse kinematics calculation
 
@@ -274,8 +278,8 @@ public class InverseKinematicsTest extends LinearOpMode {
                 double theta1Deg = Math.toDegrees(theta1);
                 double theta2Deg = Math.toDegrees(theta2) - 180;
 
-                int ShoulderTargetPos = (int) (theta1Deg * 58.678);
-                int ElbowTargetPos = (int) (theta2Deg * 30.9576);
+                int ShoulderTargetPos = (int) (theta1Deg * 73.3486);
+                int ElbowTargetPos = (int) (theta2Deg * 38.6972);
 
                 Shoulder.setTargetPosition(ShoulderTargetPos);
                 Elbow.setTargetPosition(ElbowTargetPos);
