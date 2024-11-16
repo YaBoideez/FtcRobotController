@@ -78,8 +78,8 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
     static final double TURN_SPEED = 0.5;
     static final double STRAFE_SPEED = 0.5;
 
-    double xTarget = 9.65;
-    double zTarget = 11.69;
+    double xTarget = 10.269;
+    double zTarget = 12.5151;
 
 
     @Override
@@ -106,7 +106,7 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         Shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        currentServoPosition = .2;
+        currentServoPosition = 1;
         Wrist.setPosition(currentServoPosition);
         Gripper.setPosition(1);
         calculationIK(xTarget,zTarget);
