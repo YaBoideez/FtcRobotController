@@ -54,21 +54,24 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Robot: Auto Drive By Time", group="Robot")
+@Autonomous(name="CompAutonomousV1", group="Robot")
 //@Disabled
-public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
+public class CompAutonomousV1 extends LinearOpMode {
 
     /* Declare OpMode members. */
     private DcMotor MotorFR = null;
     private DcMotor MotorBR = null;
     private DcMotor MotorFL = null;
     private DcMotor MotorBL = null;
+    private DcMotor Arm_extenstion = null;
     private DcMotor Shoulder = null;
     private DcMotor Elbow = null;
     private Servo Wrist = null;
     private Servo Gripper = null;
 
     double currentServoPosition;
+    private boolean ikFlag = true;
+
 
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -91,6 +94,7 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         MotorBR = hardwareMap.get(DcMotor.class, "MotorBR");
         MotorFL = hardwareMap.get(DcMotor.class, "MotorFL");
         MotorBL = hardwareMap.get(DcMotor.class, "MotorBL");
+        Arm_extenstion = hardwareMap.get(DcMotor.class, "Arm_extenstion");
         Shoulder = hardwareMap.get(DcMotor.class, "Shoulder");
         Elbow = hardwareMap.get(DcMotor.class, "Elbow");
         Wrist = hardwareMap.get(Servo.class, "Wrist");
@@ -105,12 +109,14 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         MotorBR.setDirection(DcMotor.Direction.FORWARD);
         Shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Arm_extenstion.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         currentServoPosition = 1;
         Wrist.setPosition(currentServoPosition);
         Gripper.setPosition(1);
-        calculationIK(xTarget,zTarget);
-
+        if (xTarget > 0 && xTarget<49 && ikFlag) {
+            calculationIK(xTarget, zTarget);
+        }
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Ready to run");    //
@@ -137,9 +143,16 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
 
         sleep(500);
 
-        xTarget = 10.84;
-        zTarget = 57.16;
-        calculationIK(xTarget,zTarget);
+        ikFlag = false;
+        Wrist.setPosition(0);
+        sleep(300);
+        Elbow.setTargetPosition(-900);
+        sleep(600);
+        Shoulder.setTargetPosition(500);
+        sleep(500);
+        Arm_extenstion.setTargetPosition(-1110);
+        Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Arm_extenstion.setPower(0.3);
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < 1)) {
             telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
@@ -163,7 +176,7 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         MotorFL.setPower(0);
         MotorBL.setPower(0);
 
-        Wrist.setPosition(1); // Open
+        Wrist.setPosition(.6);
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < 1)) {
             telemetry.addData("Path", "Leg 4: %4.1f S Elapsed", runtime.seconds());
@@ -171,7 +184,22 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         }
         sleep(500);
 
+        MotorFR.setPower(0);
+        MotorBR.setPower(0);
+        MotorFL.setPower(0);
+        MotorBL.setPower(0);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 0.)) {
+            telemetry.addData("Path", "Leg 4: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        sleep(500);
 
+
+        MotorFR.setPower(0);
+        MotorBR.setPower(0);
+        MotorFL.setPower(0);
+        MotorBL.setPower(0);
         Gripper.setPosition(0.8); // Open
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < 1)) {
@@ -180,9 +208,20 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         }
         sleep(500);
 
-        Wrist.setPosition(.5); // Open
+        Wrist.setPosition(0); // Open
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < 1)) {
+            telemetry.addData("Path", "Leg 4: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        sleep(500);
+
+        MotorFR.setPower(-0.5);
+        MotorBR.setPower(-0.5);
+        MotorFL.setPower(-0.5);
+        MotorBL.setPower(-0.5);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 0.)) {
             telemetry.addData("Path", "Leg 4: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
@@ -204,9 +243,20 @@ public class RobotAutoDriveByTime_LinearTest extends LinearOpMode {
         MotorBL.setPower(0);
         sleep(500);
 
+        ikFlag  = true;
+        Wrist.setPosition(0.0);
+        sleep(300);
+        Gripper.setPosition(1);
+        sleep(300);
+        Arm_extenstion.setTargetPosition(0);
+        Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Arm_extenstion.setPower(0.7);
+        sleep(1000);
         xTarget = 10;
-        zTarget = 30;
-        calculationIK(xTarget,zTarget);
+        zTarget = 25;
+        if (xTarget > 0 && xTarget<49 && ikFlag) {
+            calculationIK(xTarget, zTarget);
+        }
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < 1)) {
             telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());

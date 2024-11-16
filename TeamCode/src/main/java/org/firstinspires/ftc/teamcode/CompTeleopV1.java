@@ -67,9 +67,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="InverseKinematicsTest", group="Linear OpMode")
+@TeleOp(name="CompTeleopV1", group="Linear OpMode")
 //@Disabled
-public class InverseKinematicsTest extends LinearOpMode {
+public class CompTeleopV1 extends LinearOpMode {
 
     SparkFunOTOS myOtos;
     // Declare OpMode members for each of the 4 motors.
