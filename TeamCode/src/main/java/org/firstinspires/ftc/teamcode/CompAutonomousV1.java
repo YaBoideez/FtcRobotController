@@ -167,7 +167,7 @@ public class CompAutonomousV1 extends LinearOpMode {
         MotorFL.setPower(-TURN_SPEED);
         MotorBL.setPower(-TURN_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 0.9 )) {
+        while (opModeIsActive() && (runtime.seconds() < 1.1 )) {
             telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
@@ -233,7 +233,7 @@ public class CompAutonomousV1 extends LinearOpMode {
         MotorFL.setPower(TURN_SPEED);
         MotorBL.setPower(TURN_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 0.9 )) {
+        while (opModeIsActive() && (runtime.seconds() < 1.1 )) {
             telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
