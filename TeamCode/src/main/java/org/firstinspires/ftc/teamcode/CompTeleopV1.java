@@ -227,7 +227,9 @@ public class CompTeleopV1 extends LinearOpMode {
                 Arm_extenstion.setTargetPosition(0);
                 Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 Arm_extenstion.setPower(0.7);
-                sleep(1000);
+                if (Gripper.getPosition() == 1) {
+                    sleep(1000);
+                }
                 xTarget = 10;
                 zTarget = 25;
             }
@@ -277,6 +279,8 @@ public class CompTeleopV1 extends LinearOpMode {
             telemetry.addData("Slide Current Pos", Arm_extenstion.getCurrentPosition());
             telemetry.addData("Slide Target Pos", Arm_extenstion.getTargetPosition());
             telemetry.addData("Wrist Current:", Wrist.getPosition());
+            telemetry.addData("Gripper Current:", Gripper.getPosition());
+
 
 
 
