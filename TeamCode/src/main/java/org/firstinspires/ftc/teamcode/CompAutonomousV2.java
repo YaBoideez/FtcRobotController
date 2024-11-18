@@ -29,9 +29,8 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
@@ -86,9 +85,9 @@ import java.util.concurrent.TimeUnit;
  *
  */
 
-@TeleOp(name="Omni Drive To AprilTag", group = "Concept")
+@Autonomous(name="CompAutonomousV2", group = "Concept")
 //@Disabled
-public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
+public class CompAutonomousV2 extends LinearOpMode
 {
     // Adjust these numbers to suit your robot.
     final double DESIRED_DISTANCE = 28.0; //  this is how close the camera should get to the target (inches)
@@ -122,6 +121,8 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         double  strafe          = 0;        // Desired strafe power/speed (-1 to +1)
         double  turn            = 0;        // Desired turning power/speed (-1 to +1)
 
+        boolean moveToAprilTag = true;
+
         // Initialize the Apriltag Detection process
         initAprilTag();
 
@@ -150,10 +151,13 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         telemetry.update();
         waitForStart();
 
-        while (opModeIsActive())
+        while (opModeIsActive() && getRuntime()<13)
         {
+
             targetFound = false;
             desiredTag  = null;
+
+
 
             // Step through the list of detected tags and look for a matching tag
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
@@ -177,7 +181,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             }
 
             // Tell the driver what we see, and what to do.
-            if (targetFound) {
+            if (targetFound && moveToAprilTag) {
                 telemetry.addData("\n>","HOLD Left-Bumper to Drive to Target\n");
                 telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
                 telemetry.addData("Range",  "%5.1f inches", desiredTag.ftcPose.range);
@@ -187,13 +191,26 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
                 telemetry.addData("\n>","Drive using joysticks to find valid target\n");
             }
 
+            telemetry.addData("Flag", moveToAprilTag);
             // If Left Bumper is being pressed, AND we have found the desired target, Drive to target Automatically .
-            if (gamepad1.left_bumper && targetFound) {
+            if (targetFound && moveToAprilTag) {
+
 
                 // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
                 double  rangeError      = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
                 double  headingError    = desiredTag.ftcPose.bearing;
                 double  yawError        = desiredTag.ftcPose.yaw;
+
+
+                /*if (rangeError == 12) {
+                    moveToAprilTag = false;
+                    MotorFR.setPower(-0.5);
+                    MotorBR.setPower(0.5);
+                    MotorFL.setPower(0.5);
+                    MotorBL.setPower(-0.5);
+                    sleep(1500);
+
+                }*/
 
                 // Use the speed and turn "gains" to calculate how we want the robot to move.
                 drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
@@ -211,9 +228,21 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             }
             telemetry.update();
 
+
             // Apply desired axes motions to the drivetrain.
             moveRobot(drive, strafe, turn);
             sleep(10);
+        }
+
+        sleep(7000);
+        resetRuntime();
+
+        while (opModeIsActive() && getRuntime()< 0.9) {
+            MotorFR.setPower(-0.5);
+            MotorBR.setPower(0.5);
+            MotorFL.setPower(0.5);
+            MotorBL.setPower(-0.5);
+
         }
     }
 

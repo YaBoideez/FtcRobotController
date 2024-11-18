@@ -29,9 +29,9 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
@@ -39,6 +39,8 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDir
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -86,10 +88,13 @@ import java.util.concurrent.TimeUnit;
  *
  */
 
-@TeleOp(name="Omni Drive To AprilTag", group = "Concept")
+@Autonomous(name="CompAutonomousV3_OTOS", group = "Concept")
 //@Disabled
-public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
+public class CompAutonomousV3_OTOS extends LinearOpMode
 {
+    // Create an instance of the sensor
+    SparkFunOTOS myOtos;
+
     // Adjust these numbers to suit your robot.
     final double DESIRED_DISTANCE = 28.0; //  this is how close the camera should get to the target (inches)
 
@@ -109,30 +114,31 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
     private DcMotor MotorBL    = null;  //  Used to control the left back drive wheel
     private DcMotor MotorBR   = null;  //  Used to control the right back drive wheel
 
-    private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
+    /*private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
     private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
     private VisionPortal visionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
-    private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
+    private AprilTagDetection desiredTag = null; */    // Used to hold the data for a detected AprilTag
 
-    @Override public void runOpMode()
-    {
-        boolean targetFound     = false;    // Set to true when an AprilTag target is detected
-        double  drive           = 0;        // Desired forward power/speed (-1 to +1)
-        double  strafe          = 0;        // Desired strafe power/speed (-1 to +1)
-        double  turn            = 0;        // Desired turning power/speed (-1 to +1)
+    @Override public void runOpMode() {
+        boolean targetFound = false;    // Set to true when an AprilTag target is detected
+        double drive = 0;        // Desired forward power/speed (-1 to +1)
+        double strafe = 0;        // Desired strafe power/speed (-1 to +1)
+        double turn = 0;        // Desired turning power/speed (-1 to +1)
+
+        boolean moveToAprilTag = true;
 
         // Initialize the Apriltag Detection process
-        initAprilTag();
+        //initAprilTag();
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must match the names assigned during the robot configuration.
         // step (using the FTC Robot Controller app on the phone).
-        MotorFL  = hardwareMap.get(DcMotor.class, "MotorFL");
+        MotorFL = hardwareMap.get(DcMotor.class, "MotorFL");
         MotorFR = hardwareMap.get(DcMotor.class, "MotorFR");
-        MotorBL  = hardwareMap.get(DcMotor.class, "MotorBL");
+        MotorBL = hardwareMap.get(DcMotor.class, "MotorBL");
         MotorBR = hardwareMap.get(DcMotor.class, "MotorBR");
-
+        myOtos = hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
@@ -141,18 +147,76 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         MotorFR.setDirection(DcMotor.Direction.FORWARD);
         MotorBR.setDirection(DcMotor.Direction.FORWARD);
 
-        if (USE_WEBCAM)
-            setManualExposure(6, 250);  // Use low exposure time to reduce motion blur
+        //if (USE_WEBCAM)
+          //  setManualExposure(6, 250);  // Use low exposure time to reduce motion blur
+
+        // All the configuration for the OTOS is done in this helper method, check it out!
+        configureOtos();
 
         // Wait for driver to press start
-        telemetry.addData("Camera preview on/off", "3 dots, Camera Stream");
+        /*telemetry.addData("Camera preview on/off", "3 dots, Camera Stream");
         telemetry.addData(">", "Touch START to start OpMode");
-        telemetry.update();
+        telemetry.update();*/
         waitForStart();
 
-        while (opModeIsActive())
-        {
-            targetFound = false;
+        while (opModeIsActive()) {
+
+            // Get the latest position, which includes the x and y coordinates, plus the
+            // heading angle
+            SparkFunOTOS.Pose2D pos = myOtos.getPosition();
+
+            // Reset the tracking if the user requests it
+            /*if (gamepad1.y) {
+                myOtos.resetTracking();
+            }
+
+            // Re-calibrate the IMU if the user requests it
+            if (gamepad1.x) {
+                myOtos.calibrateImu();
+            }*/
+
+            // Inform user of available controls
+            telemetry.addLine("Press Y (triangle) on Gamepad to reset tracking");
+            telemetry.addLine("Press X (square) on Gamepad to calibrate the IMU");
+            telemetry.addLine();
+
+            // Log the position to the telemetry
+            telemetry.addData("X coordinate", pos.x);
+            telemetry.addData("Y coordinate", pos.y);
+            telemetry.addData("Heading angle", pos.h);
+
+            // Update the telemetry on the driver station
+            telemetry.update();
+
+            if (pos.h > -90) {
+                MotorFR.setPower(-0.2);
+                MotorBR.setPower(-0.2);
+                MotorFL.setPower(0.2);
+                MotorBL.setPower(0.2);
+
+                telemetry.addData("X coordinate", pos.x);
+                telemetry.addData("Y coordinate", pos.y);
+                telemetry.addData("Heading angle", pos.h);
+
+                telemetry.update();
+            } else {
+                MotorFR.setPower(0);
+                MotorFR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                MotorBR.setPower(0);
+                MotorBR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                MotorFL.setPower(0);
+                MotorFL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                MotorBL.setPower(0);
+                MotorBL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+                telemetry.addData("X coordinate", pos.x);
+                telemetry.addData("Y coordinate", pos.y);
+                telemetry.addData("Heading angle", pos.h);
+
+                telemetry.update();
+            }
+
+            /*targetFound = false;
             desiredTag  = null;
 
             // Step through the list of detected tags and look for a matching tag
@@ -177,7 +241,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             }
 
             // Tell the driver what we see, and what to do.
-            if (targetFound) {
+            if (targetFound && moveToAprilTag) {
                 telemetry.addData("\n>","HOLD Left-Bumper to Drive to Target\n");
                 telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
                 telemetry.addData("Range",  "%5.1f inches", desiredTag.ftcPose.range);
@@ -187,13 +251,26 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
                 telemetry.addData("\n>","Drive using joysticks to find valid target\n");
             }
 
+            telemetry.addData("Flag", moveToAprilTag);
             // If Left Bumper is being pressed, AND we have found the desired target, Drive to target Automatically .
-            if (gamepad1.left_bumper && targetFound) {
+            if (targetFound && moveToAprilTag) {
+
 
                 // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
                 double  rangeError      = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
                 double  headingError    = desiredTag.ftcPose.bearing;
                 double  yawError        = desiredTag.ftcPose.yaw;
+
+
+                if (rangeError == 12) {
+                    moveToAprilTag = false;
+                    MotorFR.setPower(-0.5);
+                    MotorBR.setPower(0.5);
+                    MotorFL.setPower(0.5);
+                    MotorBL.setPower(-0.5);
+                    sleep(1500);
+
+                }
 
                 // Use the speed and turn "gains" to calculate how we want the robot to move.
                 drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
@@ -211,10 +288,13 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             }
             telemetry.update();
 
+
             // Apply desired axes motions to the drivetrain.
             moveRobot(drive, strafe, turn);
-            sleep(10);
+            sleep(10);*/
         }
+
+
     }
 
     /**
@@ -226,7 +306,7 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
      * <p>
      * Positive Yaw is counter-clockwise
      */
-    public void moveRobot(double x, double y, double yaw) {
+    /*public void moveRobot(double x, double y, double yaw) {
         // Calculate wheel powers.
         double leftFrontPower    =  x -y -yaw;
         double rightFrontPower   =  x +y +yaw;
@@ -252,9 +332,9 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         MotorBR.setPower(rightBackPower);
     }
 
-    /**
+
      * Initialize the AprilTag processor.
-     */
+
     private void initAprilTag() {
         // Create the AprilTag processor by using a builder.
         aprilTag = new AprilTagProcessor.Builder().build();
@@ -282,10 +362,10 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
         }
     }
 
-    /*
+
      Manually set the camera gain and exposure.
      This can only be called AFTER calling initAprilTag(), and only works for Webcams;
-    */
+
     private void    setManualExposure(int exposureMS, int gain) {
         // Wait for the camera to be open, then use the controls
 
@@ -318,5 +398,86 @@ public class RobotAutoDriveToAprilTagOmni extends LinearOpMode
             gainControl.setGain(gain);
             sleep(20);
         }
+    }*/
+    private void configureOtos() {
+        telemetry.addLine("Configuring OTOS...");
+        telemetry.update();
+
+        // Set the desired units for linear and angular measurements. Can be either
+        // meters or inches for linear, and radians or degrees for angular. If not
+        // set, the default is inches and degrees. Note that this setting is not
+        // persisted in the sensor, so you need to set at the start of all your
+        // OpModes if using the non-default value.
+        // myOtos.setLinearUnit(DistanceUnit.METER);
+        myOtos.setLinearUnit(DistanceUnit.INCH);
+        // myOtos.setAngularUnit(AnguleUnit.RADIANS);
+        myOtos.setAngularUnit(AngleUnit.DEGREES);
+
+        // Assuming you've mounted your sensor to a robot and it's not centered,
+        // you can specify the offset for the sensor relative to the center of the
+        // robot. The units default to inches and degrees, but if you want to use
+        // different units, specify them before setting the offset! Note that as of
+        // firmware version 1.0, these values will be lost after a power cycle, so
+        // you will need to set them each time you power up the sensor. For example, if
+        // the sensor is mounted 5 inches to the left (negative X) and 10 inches
+        // forward (positive Y) of the center of the robot, and mounted 90 degrees
+        // clockwise (negative rotation) from the robot's orientation, the offset
+        // would be {-5, 10, -90}. These can be any value, even the angle can be
+        // tweaked slightly to compensate for imperfect mounting (eg. 1.3 degrees).
+        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, 0);
+        myOtos.setOffset(offset);
+
+        // Here we can set the linear and angular scalars, which can compensate for
+        // scaling issues with the sensor measurements. Note that as of firmware
+        // version 1.0, these values will be lost after a power cycle, so you will
+        // need to set them each time you power up the sensor. They can be any value
+        // from 0.872 to 1.127 in increments of 0.001 (0.1%). It is recommended to
+        // first set both scalars to 1.0, then calibrate the angular scalar, then
+        // the linear scalar. To calibrate the angular scalar, spin the robot by
+        // multiple rotations (eg. 10) to get a precise error, then set the scalar
+        // to the inverse of the error. Remember that the angle wraps from -180 to
+        // 180 degrees, so for example, if after 10 rotations counterclockwise
+        // (positive rotation), the sensor reports -15 degrees, the required scalar
+        // would be 3600/3585 = 1.004. To calibrate the linear scalar, move the
+        // robot a known distance and measure the error; do this multiple times at
+        // multiple speeds to get an average, then set the linear scalar to the
+        // inverse of the error. For example, if you move the robot 100 inches and
+        // the sensor reports 103 inches, set the linear scalar to 100/103 = 0.971
+        myOtos.setLinearScalar(1.0);
+        myOtos.setAngularScalar(1.0);
+
+        // The IMU on the OTOS includes a gyroscope and accelerometer, which could
+        // have an offset. Note that as of firmware version 1.0, the calibration
+        // will be lost after a power cycle; the OTOS performs a quick calibration
+        // when it powers up, but it is recommended to perform a more thorough
+        // calibration at the start of all your OpModes. Note that the sensor must
+        // be completely stationary and flat during calibration! When calling
+        // calibrateImu(), you can specify the number of samples to take and whether
+        // to wait until the calibration is complete. If no parameters are provided,
+        // it will take 255 samples and wait until done; each sample takes about
+        // 2.4ms, so about 612ms total
+        myOtos.calibrateImu();
+
+        // Reset the tracking algorithm - this resets the position to the origin,
+        // but can also be used to recover from some rare tracking errors
+        myOtos.resetTracking();
+
+        // After resetting the tracking, the OTOS will report that the robot is at
+        // the origin. If your robot does not start at the origin, or you have
+        // another source of location information (eg. vision odometry), you can set
+        // the OTOS location to match and it will continue to track from there.
+        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
+        myOtos.setPosition(currentPosition);
+
+        // Get the hardware and firmware version
+        SparkFunOTOS.Version hwVersion = new SparkFunOTOS.Version();
+        SparkFunOTOS.Version fwVersion = new SparkFunOTOS.Version();
+        myOtos.getVersionInfo(hwVersion, fwVersion);
+
+        telemetry.addLine("OTOS configured! Press start to get position data!");
+        telemetry.addLine();
+        telemetry.addLine(String.format("OTOS Hardware Version: v%d.%d", hwVersion.major, hwVersion.minor));
+        telemetry.addLine(String.format("OTOS Firmware Version: v%d.%d", fwVersion.major, fwVersion.minor));
+        telemetry.update();
     }
 }

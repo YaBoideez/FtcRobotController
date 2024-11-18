@@ -115,7 +115,7 @@ public class CompAutonomousV1 extends LinearOpMode {
         Wrist.setPosition(currentServoPosition);
         Gripper.setPosition(1);
         if (xTarget > 0 && xTarget<49 && ikFlag) {
-            calculationIK(xTarget, zTarget);
+            //calculationIK(xTarget, zTarget);
         }
 
         // Send telemetry message to signify robot waiting;
@@ -150,9 +150,9 @@ public class CompAutonomousV1 extends LinearOpMode {
         sleep(600);
         Shoulder.setTargetPosition(500);
         sleep(500);
-        Arm_extenstion.setTargetPosition(-1110);
-        Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Arm_extenstion.setPower(0.3);
+        //Arm_extenstion.setTargetPosition(-1110);
+        //Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //Arm_extenstion.setPower(0.3);
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < 1)) {
             telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
@@ -167,7 +167,7 @@ public class CompAutonomousV1 extends LinearOpMode {
         MotorFL.setPower(-TURN_SPEED);
         MotorBL.setPower(-TURN_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 1.1 )) {
+        while (opModeIsActive() && (runtime.seconds() < 1.0 )) {
             telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
@@ -214,34 +214,6 @@ public class CompAutonomousV1 extends LinearOpMode {
             telemetry.addData("Path", "Leg 4: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
-        sleep(500);
-
-        MotorFR.setPower(-0.5);
-        MotorBR.setPower(-0.5);
-        MotorFL.setPower(-0.5);
-        MotorBL.setPower(-0.5);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 0.)) {
-            telemetry.addData("Path", "Leg 4: %4.1f S Elapsed", runtime.seconds());
-            telemetry.update();
-        }
-        sleep(500);
-
-        //Step 1:  Rotate for 0.9 seconds
-        MotorFR.setPower(-TURN_SPEED);
-        MotorBR.setPower(-TURN_SPEED);
-        MotorFL.setPower(TURN_SPEED);
-        MotorBL.setPower(TURN_SPEED);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 1.1 )) {
-            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
-            telemetry.update();
-        }
-        MotorFR.setPower(0);
-        MotorBR.setPower(0);
-        MotorFL.setPower(0);
-        MotorBL.setPower(0);
-        sleep(500);
 
         ikFlag  = true;
         Wrist.setPosition(0.0);
@@ -255,13 +227,48 @@ public class CompAutonomousV1 extends LinearOpMode {
         xTarget = 10;
         zTarget = 25;
         if (xTarget > 0 && xTarget<49 && ikFlag) {
-            calculationIK(xTarget, zTarget);
+            ////calculationIK(xTarget, zTarget);
         }
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < 1)) {
             telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
+
+        sleep(500);
+
+        MotorFR.setPower(-0.5);
+        MotorBR.setPower(-0.5);
+        MotorFL.setPower(-0.5);
+        MotorBL.setPower(-0.5);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 0.8)) {
+            telemetry.addData("Path", "Leg 4: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        MotorFR.setPower(0);
+        MotorBR.setPower(0);
+        MotorFL.setPower(0);
+        MotorBL.setPower(0);
+        sleep(500);
+
+        //Step 1:  Rotate for 0.9 seconds
+        MotorFR.setPower(-TURN_SPEED);
+        MotorBR.setPower(-TURN_SPEED);
+        MotorFL.setPower(TURN_SPEED);
+        MotorBL.setPower(TURN_SPEED);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 0.33 )) {
+            telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        MotorFR.setPower(0);
+        MotorBR.setPower(0);
+        MotorFL.setPower(0);
+        MotorBL.setPower(0);
+        sleep(500);
+
+
         sleep(500);
 
         /*MotorFR.setPower(-STRAFE_SPEED);
