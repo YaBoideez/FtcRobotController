@@ -33,20 +33,9 @@ import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /*
  * This OpMode illustrates using a camera to locate and drive towards a specific AprilTag.
@@ -159,6 +148,7 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
         telemetry.update();*/
         waitForStart();
 
+
         while (opModeIsActive()) {
 
             // Get the latest position, which includes the x and y coordinates, plus the
@@ -176,6 +166,7 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
             }*/
 
             // Inform user of available controls
+
             telemetry.addLine("Press Y (triangle) on Gamepad to reset tracking");
             telemetry.addLine("Press X (square) on Gamepad to calibrate the IMU");
             telemetry.addLine();
@@ -188,34 +179,56 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
             // Update the telemetry on the driver station
             telemetry.update();
 
-            if (pos.h > -90) {
-                MotorFR.setPower(-0.2);
-                MotorBR.setPower(-0.2);
-                MotorFL.setPower(0.2);
-                MotorBL.setPower(0.2);
 
-                telemetry.addData("X coordinate", pos.x);
-                telemetry.addData("Y coordinate", pos.y);
-                telemetry.addData("Heading angle", pos.h);
-
-                telemetry.update();
+            if (pos.y > -36) {
+                setMotorPower(0.2, 0.2, 0.2, 0.2);
             } else {
-                MotorFR.setPower(0);
-                MotorFR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                MotorBR.setPower(0);
-                MotorBR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                MotorFL.setPower(0);
-                MotorFL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                MotorBL.setPower(0);
-                MotorBL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+                stopMotors();
+            }
                 telemetry.addData("X coordinate", pos.x);
                 telemetry.addData("Y coordinate", pos.y);
                 telemetry.addData("Heading angle", pos.h);
-
                 telemetry.update();
-            }
 
+            if (pos.h < 45) {
+                setMotorPower(0.2, 0.2, -0.2, -0.2);
+            } else {
+                stopMotors();
+            }
+            telemetry.addData("X coordinate", pos.x);
+            telemetry.addData("Y coordinate", pos.y);
+            telemetry.addData("Heading angle", pos.h);
+            telemetry.update();
+
+            if (pos.h > 0) {
+                setMotorPower(-0.2, -0.2, 0.2, 0.2);
+            } else {
+                stopMotors();
+            }
+            telemetry.addData("X coordinate", pos.x);
+            telemetry.addData("Y coordinate", pos.y);
+            telemetry.addData("Heading angle", pos.h);
+            telemetry.update();
+
+            if (pos.y < -19) {
+                setMotorPower(-0.2, -0.2, -0.2, -0.2);
+            } else {
+                stopMotors();
+            }
+            telemetry.addData("X coordinate", pos.x);
+            telemetry.addData("Y coordinate", pos.y);
+            telemetry.addData("Heading angle", pos.h);
+            telemetry.update();
+
+            if (pos.x < 26) {
+                setMotorPower(-0.2, 0.2, 0.2, -0.2);
+            } else {
+                stopMotors();
+            }
+            telemetry.addData("X coordinate", pos.x);
+            telemetry.addData("Y coordinate", pos.y);
+            telemetry.addData("Heading angle", pos.h);
+            telemetry.update();
             /*targetFound = false;
             desiredTag  = null;
 
@@ -480,4 +493,20 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
         telemetry.addLine(String.format("OTOS Firmware Version: v%d.%d", fwVersion.major, fwVersion.minor));
         telemetry.update();
     }
+    private void setMotorPower(double powerFR, double powerBR, double powerFL, double powerBL) {
+        MotorFR.setPower(powerFR);
+        MotorBR.setPower(powerBR);
+        MotorFL.setPower(powerFL);
+        MotorBL.setPower(powerBL);
+    }
+
+    private void stopMotors() {
+        setMotorPower(0, 0, 0, 0);
+        MotorFR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        MotorBR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        MotorFL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        MotorBL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
+
 }
