@@ -33,20 +33,12 @@ import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /*
  * This OpMode illustrates using a camera to locate and drive towards a specific AprilTag.
@@ -88,22 +80,22 @@ import java.util.concurrent.TimeUnit;
  *
  */
 
-@Autonomous(name="CompAutonomousV3_OTOS", group = "Concept")
+@Autonomous(name="CompAutonomousV4_OTOS", group = "Concept")
 //@Disabled
-public class CompAutonomousV3_OTOS extends LinearOpMode
+public class CompAutonomousV4_OTOS extends LinearOpMode
 {
     // Create an instance of the sensor
     SparkFunOTOS myOtos;
 
     // Adjust these numbers to suit your robot.
-    final double DESIRED_DISTANCE = 28.0; //  this is how close the camera should get to the target (inches)
+    //final double DESIRED_DISTANCE = 28.0; //  this is how close the camera should get to the target (inches)
 
     //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
     //  applied to the drive motors to correct the error.
     //  Drive = Error * Gain    Make these values smaller for smoother control, or larger for a more aggressive response.
-    final double SPEED_GAIN  =  0.02  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
-    final double STRAFE_GAIN =  0.015 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
-    final double TURN_GAIN   =  0.01  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
+    final double SPEED_GAIN  =  0.055  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
+    final double STRAFE_GAIN =  0.065 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
+    final double TURN_GAIN   =  0.055  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
 
     final double MAX_AUTO_SPEED = 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
     final double MAX_AUTO_STRAFE= 0.5;   //  Clip the strafing speed to this max value (adjust for your robot)
@@ -113,6 +105,17 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
     private DcMotor MotorFR  = null;  //  Used to control the right front drive wheel
     private DcMotor MotorBL    = null;  //  Used to control the left back drive wheel
     private DcMotor MotorBR   = null;  //  Used to control the right back drive wheel
+    private DcMotor Shoulder = null;
+    private DcMotor Elbow = null;
+    private DcMotor Arm_extenstion = null;
+    private Servo Wrist = null;
+    private Servo Gripper = null;
+
+    double currentServoPosition;
+    private boolean ikFlag = true;
+
+    double xTarget = 10.269;
+    double zTarget = 12.5151;
 
     /*private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
     private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
@@ -139,6 +142,11 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
         MotorBL = hardwareMap.get(DcMotor.class, "MotorBL");
         MotorBR = hardwareMap.get(DcMotor.class, "MotorBR");
         myOtos = hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
+        Shoulder = hardwareMap.get(DcMotor.class, "Shoulder");
+        Elbow = hardwareMap.get(DcMotor.class, "Elbow");
+        Arm_extenstion = hardwareMap.get(DcMotor.class, "Arm_extenstion");
+        Wrist = hardwareMap.get(Servo.class, "Wrist");
+        Gripper = hardwareMap.get(Servo.class, "Gripper");
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
@@ -147,11 +155,23 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
         MotorFR.setDirection(DcMotor.Direction.FORWARD);
         MotorBR.setDirection(DcMotor.Direction.FORWARD);
 
+        Shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Arm_extenstion.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        currentServoPosition = 1;
+        Wrist.setPosition(currentServoPosition);
+        Gripper.setPosition(1);
+
+
+
+
         //if (USE_WEBCAM)
           //  setManualExposure(6, 250);  // Use low exposure time to reduce motion blur
 
         // All the configuration for the OTOS is done in this helper method, check it out!
         configureOtos();
+
 
         // Wait for driver to press start
         /*telemetry.addData("Camera preview on/off", "3 dots, Camera Stream");
@@ -159,21 +179,23 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
         telemetry.update();*/
         waitForStart();
 
-        while (opModeIsActive()) {
 
+
+        while (opModeIsActive()) {
             // Get the latest position, which includes the x and y coordinates, plus the
             // heading angle
             SparkFunOTOS.Pose2D pos = myOtos.getPosition();
 
             // Reset the tracking if the user requests it
-            /*if (gamepad1.y) {
+            /*
+            if (gamepad1.y) {
                 myOtos.resetTracking();
             }
 
             // Re-calibrate the IMU if the user requests it
             if (gamepad1.x) {
                 myOtos.calibrateImu();
-            }*/
+            }
 
             // Inform user of available controls
             telemetry.addLine("Press Y (triangle) on Gamepad to reset tracking");
@@ -187,35 +209,35 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
 
             // Update the telemetry on the driver station
             telemetry.update();
+            */
+            //Step 1: Go to net zone
+            goToTarget(0,0,0);
 
-            if (pos.y > -24) {
-                MotorFR.setPower(0.2);
-                MotorBR.setPower(0.2);
-                MotorFL.setPower(0.2);
-                MotorBL.setPower(0.2);
+            //Step 2: Score loaded sample
+            scoreSampleHigh();
 
-                telemetry.addData("X coordinate", pos.x);
-                telemetry.addData("Y coordinate", pos.y);
-                telemetry.addData("Heading angle", pos.h);
 
-                telemetry.update();
-            } else {
-                MotorFR.setPower(0);
-                MotorFR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                MotorBR.setPower(0);
-                MotorBR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                MotorFL.setPower(0);
-                MotorFL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                MotorBL.setPower(0);
-                MotorBL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            //Step 3: Go to yellow sample 1
+                // Pick up sample
+                // Go to origin
 
-                telemetry.addData("X coordinate", pos.x);
-                telemetry.addData("Y coordinate", pos.y);
-                telemetry.addData("Heading angle", pos.h);
+            //Step 4: Score
 
-                telemetry.update();
-            }
+            //Step 5: Go to yellow sample 2
+                // Pick up sample
+                // Go to origin
+            //Step 6: Score
 
+            // Determine x, y and heading error so we can use them to control the robot automatically.
+           /* double  yError      = (0 - pos.y);
+            double  headingError    = (0- pos.h);
+            double  xError        = (0- pos.x) ;
+
+            // Use the speed and turn "gains" to calculate how we want the robot to move.
+            drive  = Range.clip(yError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+            turn   = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
+            strafe = Range.clip(-xError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+            */
             /*targetFound = false;
             desiredTag  = null;
 
@@ -288,9 +310,9 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
             }
             telemetry.update();
 
-
+*/
             // Apply desired axes motions to the drivetrain.
-            moveRobot(drive, strafe, turn);
+            /*moveRobot(drive, strafe, turn);
             sleep(10);*/
         }
 
@@ -306,7 +328,7 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
      * <p>
      * Positive Yaw is counter-clockwise
      */
-    /*public void moveRobot(double x, double y, double yaw) {
+    public void moveRobot(double x, double y, double yaw) {
         // Calculate wheel powers.
         double leftFrontPower    =  x -y -yaw;
         double rightFrontPower   =  x +y +yaw;
@@ -332,8 +354,36 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
         MotorBR.setPower(rightBackPower);
     }
 
+    public void goToTarget(double xTarget, double yTarget, double headingTarget) {
 
-     * Initialize the AprilTag processor.
+        double drive = 0;        // Desired forward power/speed (-1 to +1)
+        double strafe = 0;        // Desired strafe power/speed (-1 to +1)
+        double turn = 0;        // Desired turning power/speed (-1 to +1)
+
+        ElapsedTime runtime = new ElapsedTime();
+
+        runtime.reset();
+
+        while (runtime.seconds() < 3.0) {
+            SparkFunOTOS.Pose2D pos = myOtos.getPosition();
+
+            // Determine x, y and heading error so we can use them to control the robot automatically.
+            double xError = (xTarget - pos.x);
+            double yError = (yTarget - pos.y);
+            double headingError = (headingTarget - pos.h);
+
+
+            // Use the speed and turn "gains" to calculate how we want the robot to move.
+            drive = Range.clip(yError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+            turn = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
+            strafe = Range.clip(-xError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+
+            // Apply desired axes motions to the drivetrain.
+            moveRobot(drive, strafe, turn);
+            sleep(10);
+        }
+}
+     /* Initialize the AprilTag processor.
 
     private void initAprilTag() {
         // Create the AprilTag processor by using a builder.
@@ -480,4 +530,64 @@ public class CompAutonomousV3_OTOS extends LinearOpMode
         telemetry.addLine(String.format("OTOS Firmware Version: v%d.%d", fwVersion.major, fwVersion.minor));
         telemetry.update();
     }
+    public void calculationIK(double xTarget, double zTarget) {
+        double L1 = 28.58;
+        double L2 = 41.91;
+        // Normal inverse kinematics calculation
+
+        double distanceToTarget = Math.sqrt(xTarget * xTarget + zTarget * zTarget);
+
+        if (distanceToTarget > (L1 + L2)) {
+            telemetry.addData("Error", "Target is out of reach.");
+            telemetry.update();
+        } else {
+            double cosTheta2 = (L1 * L1 + L2 * L2 - distanceToTarget * distanceToTarget) / (2 * L1 * L2);
+            double theta2 = Math.acos(cosTheta2);
+
+            double k1 = L1 + L2 * Math.cos(theta2);
+            double k2 = L2 * Math.sin(theta2);
+            double theta1 = Math.atan2(zTarget, xTarget) - Math.atan2(k2, k1);
+
+            double theta1Deg = Math.toDegrees(theta1);
+            double theta2Deg = Math.toDegrees(theta2) - 180;
+
+            int ShoulderTargetPos = (int) (theta1Deg * 73.3486);
+            int ElbowTargetPos = (int) (theta2Deg * 38.6972);
+
+            Shoulder.setTargetPosition(ShoulderTargetPos);
+            Elbow.setTargetPosition(ElbowTargetPos);
+            Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            Shoulder.setPower(0.8);
+            Elbow.setPower(0.8);
+
+            telemetry.addData("Theta1", theta1Deg);
+            telemetry.addData("Theta2", theta2Deg);
+            telemetry.addData("Shoulder Target", ShoulderTargetPos);
+            telemetry.addData("Elbow Target", ElbowTargetPos);
+            telemetry.update();
+        }
+
+    }
+    public void scoreSampleHigh (){
+        Wrist.setPosition(0); // wrist position up
+        sleep(300);
+        Elbow.setTargetPosition(-900);
+        Shoulder.setTargetPosition(500);
+        Arm_extenstion.setTargetPosition(-1160);
+
+        Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Elbow.setPower(0.8); // Move elbow first
+        sleep(700);
+        Shoulder.setPower(0.8); // move shoulder next
+        sleep(400);
+
+
+        Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Arm_extenstion.setPower(0.3); // extend the arm, ready to score
+        sleep(700);
+        // wrist down
+        Wrist.setPosition(0.8);
+            }
 }

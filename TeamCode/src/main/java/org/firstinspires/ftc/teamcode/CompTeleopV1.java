@@ -218,22 +218,24 @@ public class CompTeleopV1 extends LinearOpMode {
             xTarget += -gamepad2.left_stick_y;
             zTarget += -gamepad2.right_stick_y;
 
+            //Turns the wrist up, retracts the extension and shoulder and arm to init position
             if (gamepad2.dpad_left){
                 ikFlag  = true;
-                Wrist.setPosition(0.0);
+                Wrist.setPosition(0.0); // wrist up
                 sleep(300);
-                Gripper.setPosition(1);
                 sleep(300);
                 Arm_extenstion.setTargetPosition(0);
                 Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                Arm_extenstion.setPower(0.7);
-                if (Gripper.getPosition() == 1) {
+                Arm_extenstion.setPower(0.9);
+                if (Gripper.getPosition() == 0.8) {
                     sleep(1000);
                 }
                 xTarget = 10;
                 zTarget = 25;
             }
-
+            // set the IK flag to false so that we don't move the shoulder and arm
+            // close wrist
+            // reach and extend the arm
             if (gamepad2.dpad_up){
                 ikFlag = false;
                 Wrist.setPosition(0);
@@ -263,6 +265,15 @@ public class CompTeleopV1 extends LinearOpMode {
                 zTarget += 7;
                 calculationIK(xTarget, zTarget);
             }
+
+            if (gamepad2.touchpad_finger_1){
+                ikFlag = true;
+                xTarget = 0.2209;
+                zTarget = 64.7306;
+
+            }
+
+
 
             // Trigger IK calculation with gamepad2.x (instead of gamepad2.square)
             if (xTarget > 0 && xTarget<49 && ikFlag) {
