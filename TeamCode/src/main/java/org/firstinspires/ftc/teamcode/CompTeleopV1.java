@@ -35,6 +35,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -71,7 +72,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 //@Disabled
 public class CompTeleopV1 extends LinearOpMode {
 
-    SparkFunOTOS myOtos;
+    //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
+    //  applied to the drive motors to correct the error.
+    //  Drive = Error * Gain    Make these values smaller for smoother control, or larger for a more aggressive response.
+    final double SPEED_GAIN  =  0.035  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
+    final double STRAFE_GAIN =  0.035 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
+    final double TURN_GAIN   =  0.035  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
+
+    final double MAX_AUTO_SPEED = 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
+    final double MAX_AUTO_STRAFE= 0.5;   //  Clip the strafing speed to this max value (adjust for your robot)
+    final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)
+
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor MotorFL = null;
@@ -83,6 +94,9 @@ public class CompTeleopV1 extends LinearOpMode {
     private DcMotor Arm_extenstion = null;
     private Servo Wrist = null;
     private Servo Gripper = null;
+
+    SparkFunOTOS myOtos;
+
 
     int currentServoPosition;
     private boolean ikFlag = true;
@@ -171,6 +185,12 @@ public class CompTeleopV1 extends LinearOpMode {
             // Update the telemetry on the driver station
             telemetry.update();
             double max;
+
+            //Use left bumper to drive to net position
+
+            if(gamepad1.left_bumper){
+                goToTarget(0,0,0);
+            }
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double axial = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
@@ -405,7 +425,7 @@ public class CompTeleopV1 extends LinearOpMode {
         // clockwise (negative rotation) from the robot's orientation, the offset
         // would be {-5, 10, -90}. These can be any value, even the angle can be
         // tweaked slightly to compensate for imperfect mounting (eg. 1.3 degrees).
-        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, 0);
+        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, 180);
         myOtos.setOffset(offset);
 
         // Here we can set the linear and angular scalars, which can compensate for
@@ -463,6 +483,61 @@ public class CompTeleopV1 extends LinearOpMode {
     }
     public void pickUpBlock(){
         ikFlag = true;
-        calculationIK(18.3315,13.484);
+        calculationIK(14.5263,11.6001);
+    }
+    public void moveRobot(double x, double y, double yaw) {
+        // Calculate wheel powers.
+        double leftFrontPower    =  x -y -yaw;
+        double rightFrontPower   =  x +y +yaw;
+        double leftBackPower     =  x +y -yaw;
+        double rightBackPower    =  x -y +yaw;
+
+        // Normalize wheel powers to be less than 1.0
+        double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+        max = Math.max(max, Math.abs(leftBackPower));
+        max = Math.max(max, Math.abs(rightBackPower));
+
+        if (max > 1.0) {
+            leftFrontPower /= max;
+            rightFrontPower /= max;
+            leftBackPower /= max;
+            rightBackPower /= max;
+        }
+
+        // Send powers to the wheels.
+        MotorFL.setPower(leftFrontPower);
+        MotorFR.setPower(rightFrontPower);
+        MotorBL.setPower(leftBackPower);
+        MotorBR.setPower(rightBackPower);
+    }
+
+    public void goToTarget(double xTarget, double yTarget, double headingTarget) {
+
+        double drive = 0;        // Desired forward power/speed (-1 to +1)
+        double strafe = 0;        // Desired strafe power/speed (-1 to +1)
+        double turn = 0;        // Desired turning power/speed (-1 to +1)
+
+        ElapsedTime runtime = new ElapsedTime();
+
+        runtime.reset();
+
+        while (runtime.seconds() < 3.0) {
+            SparkFunOTOS.Pose2D pos = myOtos.getPosition();
+
+            // Determine x, y and heading error so we can use them to control the robot automatically.
+            double xError = (xTarget - pos.x);
+            double yError = (yTarget - pos.y);
+            double headingError = (headingTarget - pos.h);
+
+
+            // Use the speed and turn "gains" to calculate how we want the robot to move.
+            drive = Range.clip(yError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+            turn = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
+            strafe = Range.clip(-xError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+
+            // Apply desired axes motions to the drivetrain.
+            moveRobot(drive, strafe, turn);
+            sleep(10);
+        }
     }
 }
