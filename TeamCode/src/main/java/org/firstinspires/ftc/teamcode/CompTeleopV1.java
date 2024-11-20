@@ -228,7 +228,7 @@ public class CompTeleopV1 extends LinearOpMode {
                 Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 Arm_extenstion.setPower(0.9);
                 if (Gripper.getPosition() == 0.8) {
-                    sleep(1000);
+                    sleep(2000);
                 }
                 xTarget = 10;
                 zTarget = 25;
@@ -244,9 +244,9 @@ public class CompTeleopV1 extends LinearOpMode {
                 sleep(600);
                 Shoulder.setTargetPosition(500);
                 sleep(500);
-                Arm_extenstion.setTargetPosition(-1260);
+                Arm_extenstion.setTargetPosition(-2300);
                 Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                Arm_extenstion.setPower(0.3);
+                Arm_extenstion.setPower(1);
                 //xTarget = -3.6312;
                 //zTarget = 67.1264;
                 //calculationIK(xTarget,zTarget);
@@ -272,6 +272,7 @@ public class CompTeleopV1 extends LinearOpMode {
                 zTarget = 64.7306;
 
             }
+
 
 
 
@@ -459,5 +460,9 @@ public class CompTeleopV1 extends LinearOpMode {
         telemetry.addLine(String.format("OTOS Hardware Version: v%d.%d", hwVersion.major, hwVersion.minor));
         telemetry.addLine(String.format("OTOS Firmware Version: v%d.%d", fwVersion.major, fwVersion.minor));
         telemetry.update();
+    }
+    public void pickUpBlock(){
+        ikFlag = true;
+        calculationIK(18.3315,13.484);
     }
 }

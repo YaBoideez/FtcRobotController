@@ -93,9 +93,9 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
     //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
     //  applied to the drive motors to correct the error.
     //  Drive = Error * Gain    Make these values smaller for smoother control, or larger for a more aggressive response.
-    final double SPEED_GAIN  =  0.055  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
-    final double STRAFE_GAIN =  0.065 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
-    final double TURN_GAIN   =  0.055  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
+    final double SPEED_GAIN  =  0.035  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
+    final double STRAFE_GAIN =  0.035 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
+    final double TURN_GAIN   =  0.035  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
 
     final double MAX_AUTO_SPEED = 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
     final double MAX_AUTO_STRAFE= 0.5;   //  Clip the strafing speed to this max value (adjust for your robot)
@@ -179,7 +179,8 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         telemetry.update();*/
         waitForStart();
 
-
+        boolean goToTarget = true;
+        boolean score = true;
 
         while (opModeIsActive()) {
             // Get the latest position, which includes the x and y coordinates, plus the
@@ -211,22 +212,37 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
             telemetry.update();
             */
             //Step 1: Go to net zone
-            goToTarget(0,0,0);
-
+            if (goToTarget) {goToTarget(0,0,0);}
+            goToTarget = true;
             //Step 2: Score loaded sample
-            scoreSampleHigh();
+            //if (score) {scoreSampleHigh();}
+            //score = false;
 
 
             //Step 3: Go to yellow sample 1
-                // Pick up sample
-                // Go to origin
+            if (goToTarget) {goToTarget(9.5998,-28.403,-45.6322);}
+            goToTarget = true;
+            // Pick up sample
 
+            // Go to origin
+            if (goToTarget) {goToTarget(0,0,0);}
+            goToTarget = true;
             //Step 4: Score
+            //if (score) {scoreSampleHigh();}
+            //score = false;
 
             //Step 5: Go to yellow sample 2
-                // Pick up sample
-                // Go to origin
+            if (goToTarget) {goToTarget(16.208,-20.1008,-45.6322);}
+            goToTarget = true;
+            // Pick up sample
+            //pickUpBlock();
+            // Go to origin
+            if (goToTarget) {goToTarget(0,0,0);}
+            goToTarget = true;
             //Step 6: Score
+            //if (score) {scoreSampleHigh();}
+            //score = false;
+
 
             // Determine x, y and heading error so we can use them to control the robot automatically.
            /* double  yError      = (0 - pos.y);
@@ -311,8 +327,8 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
             telemetry.update();
 
 */
-            // Apply desired axes motions to the drivetrain.
-            /*moveRobot(drive, strafe, turn);
+            /* Apply desired axes motions to the drivetrain.
+            moveRobot(drive, strafe, turn);
             sleep(10);*/
         }
 
@@ -474,7 +490,7 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         // clockwise (negative rotation) from the robot's orientation, the offset
         // would be {-5, 10, -90}. These can be any value, even the angle can be
         // tweaked slightly to compensate for imperfect mounting (eg. 1.3 degrees).
-        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(25, -25, 180);
+        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, 180);
         myOtos.setOffset(offset);
 
         // Here we can set the linear and angular scalars, which can compensate for
@@ -574,7 +590,7 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         sleep(300);
         Elbow.setTargetPosition(-900);
         Shoulder.setTargetPosition(500);
-        Arm_extenstion.setTargetPosition(-1160);
+        Arm_extenstion.setTargetPosition(-2300);
 
         Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -585,9 +601,38 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
 
 
         Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Arm_extenstion.setPower(0.3); // extend the arm, ready to score
+        Arm_extenstion.setPower(1); // extend the arm, ready to score
+        sleep(1500);
+        goToTarget(0, 8,0);
+        Wrist.setPosition(0.8);// wrist down
         sleep(700);
-        // wrist down
-        Wrist.setPosition(0.8);
-            }
+        Gripper.setPosition(0.8); // open gripper to drop the sample
+        sleep(500);
+        Wrist.setPosition(0.0); // wrist position up
+        sleep(400);
+        goToTarget(0,0,0);
+        sleep(500);
+        //retract arm
+        ikFlag  = true;
+        Wrist.setPosition(0.0); // wrist up
+        sleep(300);
+        sleep(300);
+        Arm_extenstion.setTargetPosition(0);
+        Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Arm_extenstion.setPower(0.9);
+        if (Gripper.getPosition() == 0.8) {
+            sleep(2000);
+        }
+        calculationIK(10,25);
+
+
+    }
+
+    public void pickUpBlock(){
+
+
+        //sleep(7000);
+        //calculationIK(14.5263,11.6001);
+    }
+
 }

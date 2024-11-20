@@ -9,6 +9,10 @@ import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -28,12 +32,53 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class SensorSparkFunOTOS extends LinearOpMode {
     // Create an instance of the sensor
     SparkFunOTOS myOtos;
+    final double SPEED_GAIN  =  0.055  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
+    final double STRAFE_GAIN =  0.065 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
+    final double TURN_GAIN   =  0.055  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
+
+    final double MAX_AUTO_SPEED = 0.3;   //  Clip the approach speed to this max value (adjust for your robot)
+    final double MAX_AUTO_STRAFE= 0.3;   //  Clip the strafing speed to this max value (adjust for your robot)
+    final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)
+
+    private DcMotor MotorFL   = null;  //  Used to control the left front drive wheel
+    private DcMotor MotorFR  = null;  //  Used to control the right front drive wheel
+    private DcMotor MotorBL    = null;  //  Used to control the left back drive wheel
+    private DcMotor MotorBR   = null;  //  Used to control the right back drive wheel
+    private DcMotor Shoulder = null;
+    private DcMotor Elbow = null;
+    private DcMotor Arm_extenstion = null;
+    private Servo Wrist = null;
+    private Servo Gripper = null;
 
     @Override
     public void runOpMode() throws InterruptedException {
+        MotorFL = hardwareMap.get(DcMotor.class, "MotorFL");
+        MotorFR = hardwareMap.get(DcMotor.class, "MotorFR");
+        MotorBL = hardwareMap.get(DcMotor.class, "MotorBL");
+        MotorBR = hardwareMap.get(DcMotor.class, "MotorBR");
+        myOtos = hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
+        Shoulder = hardwareMap.get(DcMotor.class, "Shoulder");
+        Elbow = hardwareMap.get(DcMotor.class, "Elbow");
+        Arm_extenstion = hardwareMap.get(DcMotor.class, "Arm_extenstion");
+        Wrist = hardwareMap.get(Servo.class, "Wrist");
+        Gripper = hardwareMap.get(Servo.class, "Gripper");
         // Get a reference to the sensor
         myOtos = hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
 
+
+        MotorFL.setDirection(DcMotor.Direction.REVERSE);
+        MotorBL.setDirection(DcMotor.Direction.REVERSE);
+        MotorFR.setDirection(DcMotor.Direction.FORWARD);
+        MotorBR.setDirection(DcMotor.Direction.FORWARD);
+
+        Shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Arm_extenstion.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+        double drive = 0;        // Desired forward power/speed (-1 to +1)
+        double strafe = 0;        // Desired strafe power/speed (-1 to +1)
+        double turn = 0;        // Desired turning power/speed (-1 to +1)
         // All the configuration for the OTOS is done in this helper method, check it out!
         configureOtos();
 
@@ -56,6 +101,7 @@ public class SensorSparkFunOTOS extends LinearOpMode {
                 myOtos.calibrateImu();
             }
 
+            //goToTarget(0,0,0);
             // Inform user of available controls
             telemetry.addLine("Press Y (triangle) on Gamepad to reset tracking");
             telemetry.addLine("Press X (square) on Gamepad to calibrate the IMU");
@@ -96,7 +142,7 @@ public class SensorSparkFunOTOS extends LinearOpMode {
         // clockwise (negative rotation) from the robot's orientation, the offset
         // would be {-5, 10, -90}. These can be any value, even the angle can be
         // tweaked slightly to compensate for imperfect mounting (eg. 1.3 degrees).
-        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, 0);
+        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, 180);
         myOtos.setOffset(offset);
 
         // Here we can set the linear and angular scalars, which can compensate for
@@ -151,5 +197,60 @@ public class SensorSparkFunOTOS extends LinearOpMode {
         telemetry.addLine(String.format("OTOS Hardware Version: v%d.%d", hwVersion.major, hwVersion.minor));
         telemetry.addLine(String.format("OTOS Firmware Version: v%d.%d", fwVersion.major, fwVersion.minor));
         telemetry.update();
+    }
+    public void moveRobot(double x, double y, double yaw) {
+        // Calculate wheel powers.
+        double leftFrontPower    =  x -y -yaw;
+        double rightFrontPower   =  x +y +yaw;
+        double leftBackPower     =  x +y -yaw;
+        double rightBackPower    =  x -y +yaw;
+
+        // Normalize wheel powers to be less than 1.0
+        double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+        max = Math.max(max, Math.abs(leftBackPower));
+        max = Math.max(max, Math.abs(rightBackPower));
+
+        if (max > 1.0) {
+            leftFrontPower /= max;
+            rightFrontPower /= max;
+            leftBackPower /= max;
+            rightBackPower /= max;
+        }
+
+        // Send powers to the wheels.
+        MotorFL.setPower(leftFrontPower);
+        MotorFR.setPower(rightFrontPower);
+        MotorBL.setPower(leftBackPower);
+        MotorBR.setPower(rightBackPower);
+    }
+
+    public void goToTarget(double xTarget, double yTarget, double headingTarget) {
+
+        double drive = 0;        // Desired forward power/speed (-1 to +1)
+        double strafe = 0;        // Desired strafe power/speed (-1 to +1)
+        double turn = 0;        // Desired turning power/speed (-1 to +1)
+
+        ElapsedTime runtime = new ElapsedTime();
+
+        runtime.reset();
+
+        while (runtime.seconds() < 3.0) {
+            SparkFunOTOS.Pose2D pos = myOtos.getPosition();
+
+            // Determine x, y and heading error so we can use them to control the robot automatically.
+            double xError = (xTarget - pos.x);
+            double yError = (yTarget - pos.y);
+            double headingError = (headingTarget - pos.h);
+
+
+            // Use the speed and turn "gains" to calculate how we want the robot to move.
+            drive = Range.clip(yError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+            turn = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
+            strafe = Range.clip(-xError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+
+            // Apply desired axes motions to the drivetrain.
+            moveRobot(drive, strafe, turn);
+            sleep(10);
+        }
     }
 }
