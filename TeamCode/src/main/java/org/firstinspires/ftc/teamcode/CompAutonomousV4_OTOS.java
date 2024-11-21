@@ -634,7 +634,10 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
     }
 
     public void pickUpBlock(){
-        calculationIK(18.8541,11.1036);
+        xTarget = 18.8541;
+        zTarget = 11.1036;
+        calculationIK(xTarget,zTarget);
+        sleep(700);
         Wrist.setPosition(0.5111);
         sleep(400);
         Gripper.setPosition(0.8);
