@@ -114,7 +114,7 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
     double currentServoPosition;
     private boolean ikFlag = true;
 
-    double xTarget = 10.269;
+    double xTarget = 11.269;
     double zTarget = 12.5151;
 
     /*private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
@@ -215,33 +215,38 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
             if (goToTarget) {goToTarget(0,0,0);}
             goToTarget = true;
             //Step 2: Score loaded sample
-            //if (score) {scoreSampleHigh();}
-            //score = false;
+            if (score) {scoreSampleHigh();}
+            score = false;
 
 
             //Step 3: Go to yellow sample 1
             if (goToTarget) {goToTarget(9.5998,-28.403,-45.6322);}
             goToTarget = true;
             // Pick up sample
-
+            sleep(3000);
+            pickUpBlock();
+            sleep(3000);
             // Go to origin
             if (goToTarget) {goToTarget(0,0,0);}
             goToTarget = true;
             //Step 4: Score
-            //if (score) {scoreSampleHigh();}
-            //score = false;
+            sleep(3000);
+            score = true;
+            if (score) {scoreSampleHigh();}
+            score = false;
 
-            //Step 5: Go to yellow sample 2
+            /*Step 5: Go to yellow sample 2
             if (goToTarget) {goToTarget(16.208,-20.1008,-45.6322);}
             goToTarget = true;
             // Pick up sample
-            //pickUpBlock();
+            pickUpBlock();
             // Go to origin
             if (goToTarget) {goToTarget(0,0,0);}
             goToTarget = true;
             //Step 6: Score
-            //if (score) {scoreSampleHigh();}
-            //score = false;
+            score = true;
+            if (score) {scoreSampleHigh();}
+            score = false;*/
 
 
             // Determine x, y and heading error so we can use them to control the robot automatically.
@@ -586,7 +591,7 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
 
     }
     public void scoreSampleHigh (){
-        Wrist.setPosition(0); // wrist position up
+        /*Wrist.setPosition(0); // wrist position up
         sleep(300);
         Elbow.setTargetPosition(-900);
         Shoulder.setTargetPosition(500);
@@ -605,9 +610,9 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         sleep(1500);
         goToTarget(0, 8,0);
         Wrist.setPosition(0.8);// wrist down
-        sleep(700);
+        sleep(700);*/
         Gripper.setPosition(0.8); // open gripper to drop the sample
-        sleep(500);
+        /*sleep(500);
         Wrist.setPosition(0.0); // wrist position up
         sleep(400);
         goToTarget(0,0,0);
@@ -623,16 +628,25 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         if (Gripper.getPosition() == 0.8) {
             sleep(2000);
         }
-        calculationIK(10,25);
+        calculationIK(10,25);*/
 
 
     }
 
     public void pickUpBlock(){
-
-
-        //sleep(7000);
-        //calculationIK(14.5263,11.6001);
+        calculationIK(18.8541,11.1036);
+        Wrist.setPosition(0.5111);
+        sleep(400);
+        Gripper.setPosition(0.8);
+        sleep(500);
+        zTarget -= 5;
+        calculationIK(xTarget, zTarget);
+        sleep(500);
+        Gripper.setPosition(1);
+        sleep(500);
+        zTarget += 7;
+        calculationIK(xTarget, zTarget);
     }
+
 
 }
