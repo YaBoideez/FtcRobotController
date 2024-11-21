@@ -591,8 +591,8 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
 
     }
     public void scoreSampleHigh (){
-        /*Wrist.setPosition(0); // wrist position up
-        sleep(300);
+        Wrist.setPosition(0); // wrist position up
+        /*sleep(300);
         Elbow.setTargetPosition(-900);
         Shoulder.setTargetPosition(500);
         Arm_extenstion.setTargetPosition(-2300);
@@ -627,8 +627,8 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         Arm_extenstion.setPower(0.9);
         if (Gripper.getPosition() == 0.8) {
             sleep(2000);
-        }
-        calculationIK(10,25);*/
+        }*/
+        calculationIK(10,25);
 
 
     }
