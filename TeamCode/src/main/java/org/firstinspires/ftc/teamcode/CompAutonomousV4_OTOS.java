@@ -217,6 +217,7 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
             //Step 2: Score loaded sample
             if (score) {scoreSampleHigh();}
             score = false;
+            sleep(3000);
 
 
             //Step 3: Go to yellow sample 1
@@ -224,7 +225,7 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
             goToTarget = true;
             // Pick up sample
             sleep(3000);
-            pickUpBlock();
+            pickUpBlock1();
             sleep(3000);
             // Go to origin
             if (goToTarget) {goToTarget(0,0,0);}
@@ -235,18 +236,18 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
             if (score) {scoreSampleHigh();}
             score = false;
 
-            /*Step 5: Go to yellow sample 2
+            //Step 5: Go to yellow sample 2
             if (goToTarget) {goToTarget(16.208,-20.1008,-45.6322);}
             goToTarget = true;
             // Pick up sample
-            pickUpBlock();
+            pickUpBlock2();
             // Go to origin
             if (goToTarget) {goToTarget(0,0,0);}
             goToTarget = true;
             //Step 6: Score
             score = true;
             if (score) {scoreSampleHigh();}
-            score = false;*/
+            score = false;
 
 
             // Determine x, y and heading error so we can use them to control the robot automatically.
@@ -633,7 +634,7 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
 
     }
 
-    public void pickUpBlock(){
+    public void pickUpBlock1(){
         xTarget = 18.8541;
         zTarget = 11.1036;
         calculationIK(xTarget,zTarget);
@@ -642,13 +643,37 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         sleep(400);
         Gripper.setPosition(0.8);
         sleep(500);
-        zTarget -= 5;
+        zTarget -= 3;
         calculationIK(xTarget, zTarget);
         sleep(500);
         Gripper.setPosition(1);
         sleep(500);
         zTarget += 7;
         calculationIK(xTarget, zTarget);
+        xTarget = 10;
+        zTarget = 25;
+        calculationIK(xTarget,zTarget);
+    }
+
+    public void pickUpBlock2(){
+        xTarget = 24.131;
+        zTarget = 13.3419;
+        calculationIK(xTarget,zTarget);
+        sleep(700);
+        Wrist.setPosition(0.5111);
+        sleep(400);
+        Gripper.setPosition(0.8);
+        sleep(500);
+        zTarget -= 3;
+        calculationIK(xTarget, zTarget);
+        sleep(500);
+        Gripper.setPosition(1);
+        sleep(500);
+        zTarget += 7;
+        calculationIK(xTarget, zTarget);
+        xTarget = 10;
+        zTarget = 25;
+        calculationIK(xTarget,zTarget);
     }
 
 
