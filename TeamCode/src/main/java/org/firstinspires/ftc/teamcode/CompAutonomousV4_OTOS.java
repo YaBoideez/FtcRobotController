@@ -183,8 +183,6 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         telemetry.update();*/
         waitForStart();
 
-        calculationIK(11.9387, 14.254);
-
         boolean goToTarget = true;
         boolean score = true;
 
