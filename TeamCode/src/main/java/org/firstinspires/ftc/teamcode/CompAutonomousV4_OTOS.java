@@ -604,18 +604,22 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         Arm_extenstion.setTargetPosition(-2300);
 
         Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        sleep(900);
+        sleep(1600);
         Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        sleep(900);
+        sleep(1300);
         Elbow.setPower(0.8); // Move elbow first
-        sleep(900);
+        sleep(1300);
         Shoulder.setPower(.8);
-        sleep(1000);
+        sleep(1300);
         runtime.reset();
         Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Arm_extenstion.setPower(0.5); // extend the arm, ready to score
         sleep(800);
-        goToTarget(0, 8,0);
+        if (adjustmentFlag){
+            goToTarget(0, 9, 0);
+        } else {
+            goToTarget(4, 9, 0);
+        }
         Wrist.setPosition(0.8);// wrist down
         sleep(300);
         Gripper.setPosition(0.8); // open gripper to drop the sample
