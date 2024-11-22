@@ -616,7 +616,7 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         runtime.reset();
         Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Arm_extenstion.setPower(0.5); // extend the arm, ready to score
-        sleep(1500);
+        sleep(800);
         goToTarget(0, 8,0);
         Wrist.setPosition(0.8);// wrist down
         sleep(300);
