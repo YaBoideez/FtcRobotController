@@ -369,32 +369,60 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
     }
 
     public void goToTarget(double xTarget, double yTarget, double headingTarget) {
+        SparkFunOTOS.Pose2D pos = myOtos.getPosition();
+        if ((xTarget - pos.x)< 6 && (yTarget - pos.y) < 6) {
 
-        double drive = 0;        // Desired forward power/speed (-1 to +1)
-        double strafe = 0;        // Desired strafe power/speed (-1 to +1)
-        double turn = 0;        // Desired turning power/speed (-1 to +1)
+            double drive = 0;        // Desired forward power/speed (-1 to +1)
+            double strafe = 0;        // Desired strafe power/speed (-1 to +1)
+            double turn = 0;        // Desired turning power/speed (-1 to +1)
 
-        ElapsedTime runtime = new ElapsedTime();
+            ElapsedTime runtime = new ElapsedTime();
 
-        runtime.reset();
+            runtime.reset();
 
-        while (runtime.seconds() < 2.30) {
-            SparkFunOTOS.Pose2D pos = myOtos.getPosition();
+            while (runtime.seconds() < 2) {
 
-            // Determine x, y and heading error so we can use them to control the robot automatically.
-            double xError = (xTarget - pos.x);
-            double yError = (yTarget - pos.y);
-            double headingError = (headingTarget - pos.h);
+                // Determine x, y and heading error so we can use them to control the robot automatically.
+                double xError = (xTarget - pos.x);
+                double yError = (yTarget - pos.y);
+                double headingError = (headingTarget - pos.h);
 
 
-            // Use the speed and turn "gains" to calculate how we want the robot to move.
-            drive = Range.clip(yError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
-            turn = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
-            strafe = Range.clip(-xError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+                // Use the speed and turn "gains" to calculate how we want the robot to move.
+                drive = Range.clip(yError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+                turn = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
+                strafe = Range.clip(-xError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
 
-            // Apply desired axes motions to the drivetrain.
-            moveRobot(drive, strafe, turn);
-            sleep(10);
+                // Apply desired axes motions to the drivetrain.
+                moveRobot(drive, strafe, turn);
+                sleep(10);
+            }
+        } else {
+            double drive = 0;        // Desired forward power/speed (-1 to +1)
+            double strafe = 0;        // Desired strafe power/speed (-1 to +1)
+            double turn = 0;        // Desired turning power/speed (-1 to +1)
+
+            ElapsedTime runtime = new ElapsedTime();
+
+            runtime.reset();
+
+            while (runtime.seconds() < 3) {
+
+                // Determine x, y and heading error so we can use them to control the robot automatically.
+                double xError = (xTarget - pos.x);
+                double yError = (yTarget - pos.y);
+                double headingError = (headingTarget - pos.h);
+
+
+                // Use the speed and turn "gains" to calculate how we want the robot to move.
+                drive = Range.clip(yError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+                turn = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
+                strafe = Range.clip(-xError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+
+                // Apply desired axes motions to the drivetrain.
+                moveRobot(drive, strafe, turn);
+                sleep(10);
+            }
         }
 }
      /* Initialize the AprilTag processor.
