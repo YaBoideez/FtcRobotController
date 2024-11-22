@@ -149,7 +149,7 @@ public class CompTeleopV1 extends LinearOpMode {
         waitForStart();
         runtime.reset();
         double xTarget = 10;
-        double zTarget = 40;
+        double zTarget = 25;
         currentServoPosition = (int) 1;
         Wrist.setPosition(currentServoPosition);
         // run until the end of the match (driver presses STOP)

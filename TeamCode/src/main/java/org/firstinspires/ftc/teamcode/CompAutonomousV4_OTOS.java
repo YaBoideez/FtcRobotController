@@ -111,11 +111,13 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
     private Servo Wrist = null;
     private Servo Gripper = null;
 
-    double currentServoPosition;
+    double currentServoPosition = 1;
     private boolean ikFlag = true;
 
-    double xTarget = 11.269;
-    double zTarget = 12.5151;
+
+
+    double xTarget = 11.9387;
+    double zTarget = 14.254;
 
     /*private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
     private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
@@ -130,6 +132,8 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         double turn = 0;        // Desired turning power/speed (-1 to +1)
 
         boolean moveToAprilTag = true;
+
+        calculationIK(11.9387, 14.254);
 
         // Initialize the Apriltag Detection process
         //initAprilTag();
@@ -215,38 +219,35 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
             if (goToTarget) {goToTarget(0,0,0);}
             goToTarget = true;
             //Step 2: Score loaded sample
-            if (score) {scoreSampleHigh();}
+            if (score) {scoreSampleHigh(false);}
             score = false;
-            sleep(3000);
+            sleep(2000);
 
 
             //Step 3: Go to yellow sample 1
             if (goToTarget) {goToTarget(9.5998,-28.403,-45.6322);}
             goToTarget = true;
             // Pick up sample
-            sleep(3000);
+            sleep(1000);
             pickUpBlock1();
-            sleep(3000);
+            sleep(2000);
             // Go to origin
-            if (goToTarget) {goToTarget(0,0,0);}
-            goToTarget = true;
+            /*if (goToTarget) {goToTarget(0,0,0);}
+            goToTarget = true;*/
             //Step 4: Score
-            sleep(3000);
             score = true;
-            if (score) {scoreSampleHigh();}
+            if (score) {scoreSampleHigh(true);}
             score = false;
 
+            sleep(1000);
             //Step 5: Go to yellow sample 2
             if (goToTarget) {goToTarget(16.208,-20.1008,-45.6322);}
             goToTarget = true;
             // Pick up sample
             pickUpBlock2();
-            // Go to origin
-            if (goToTarget) {goToTarget(0,0,0);}
-            goToTarget = true;
             //Step 6: Score
             score = true;
-            if (score) {scoreSampleHigh();}
+            if (score) {scoreSampleHigh(true);}
             score = false;
 
 
@@ -580,8 +581,8 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
             Elbow.setTargetPosition(ElbowTargetPos);
             Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            Shoulder.setPower(0.8);
             Elbow.setPower(0.8);
+            Shoulder.setPower(0.8);
 
             telemetry.addData("Theta1", theta1Deg);
             telemetry.addData("Theta2", theta2Deg);
@@ -591,46 +592,44 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         }
 
     }
-    public void scoreSampleHigh (){
+    public void scoreSampleHigh (boolean adjustmentFlag) {
+        ElapsedTime runtime = new ElapsedTime();
+        runtime.reset();
+
+        if (adjustmentFlag){goToTarget(0, -9, 0);}
         Wrist.setPosition(0); // wrist position up
-        /*sleep(300);
+        sleep(300);
         Elbow.setTargetPosition(-900);
         Shoulder.setTargetPosition(500);
         Arm_extenstion.setTargetPosition(-2300);
 
         Elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        sleep(900);
         Shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        sleep(900);
         Elbow.setPower(0.8); // Move elbow first
-        sleep(700);
-        Shoulder.setPower(0.8); // move shoulder next
-        sleep(400);
-
-
+        sleep(900);
+        Shoulder.setPower(.8);
+        sleep(1000);
+        runtime.reset();
         Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Arm_extenstion.setPower(1); // extend the arm, ready to score
+        Arm_extenstion.setPower(0.5); // extend the arm, ready to score
         sleep(1500);
         goToTarget(0, 8,0);
         Wrist.setPosition(0.8);// wrist down
-        sleep(700);*/
+        sleep(300);
         Gripper.setPosition(0.8); // open gripper to drop the sample
-        /*sleep(500);
+        sleep(300);
         Wrist.setPosition(0.0); // wrist position up
-        sleep(400);
+        sleep(200);
         goToTarget(0,0,0);
-        sleep(500);
         //retract arm
         ikFlag  = true;
-        Wrist.setPosition(0.0); // wrist up
-        sleep(300);
-        sleep(300);
         Arm_extenstion.setTargetPosition(0);
         Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Arm_extenstion.setPower(0.9);
-        if (Gripper.getPosition() == 0.8) {
-            sleep(2000);
-        }*/
+        sleep(1300);
         calculationIK(10,25);
-
 
     }
 
