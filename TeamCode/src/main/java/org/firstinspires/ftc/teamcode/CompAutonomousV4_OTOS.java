@@ -239,16 +239,7 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
             if (score) {scoreSampleHigh(true);}
             score = false;
 
-            sleep(1000);
-            //Step 5: Go to yellow sample 2
-            if (goToTarget) {goToTarget(16.208,-20.1008,-45.6322);}
-            goToTarget = true;
-            // Pick up sample
-            pickUpBlock2();
-            //Step 6: Score
-            score = true;
-            if (score) {scoreSampleHigh(true);}
-            score = false;
+            goToTarget(0,0,0);
 
 
             // Determine x, y and heading error so we can use them to control the robot automatically.
@@ -614,7 +605,7 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         runtime.reset();
         Arm_extenstion.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Arm_extenstion.setPower(0.5); // extend the arm, ready to score
-        sleep(800);
+        sleep(600);
         if (adjustmentFlag){
             goToTarget(0, 9, 0);
         } else {
@@ -625,7 +616,6 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         Gripper.setPosition(0.8); // open gripper to drop the sample
         sleep(300);
         Wrist.setPosition(0.0); // wrist position up
-        sleep(200);
         goToTarget(0,0,0);
         //retract arm
         ikFlag  = true;
@@ -641,16 +631,14 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         xTarget = 18.8541;
         zTarget = 11.1036;
         calculationIK(xTarget,zTarget);
-        sleep(700);
         Wrist.setPosition(0.5111);
-        sleep(400);
         Gripper.setPosition(0.8);
         sleep(500);
         zTarget -= 3;
         calculationIK(xTarget, zTarget);
         sleep(500);
         Gripper.setPosition(1);
-        sleep(500);
+        sleep(200);
         zTarget += 7;
         calculationIK(xTarget, zTarget);
         xTarget = 10;
