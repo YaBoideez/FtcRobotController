@@ -378,7 +378,7 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
 
         runtime.reset();
 
-        while (runtime.seconds() < 3.0) {
+        while (runtime.seconds() < 2.30) {
             SparkFunOTOS.Pose2D pos = myOtos.getPosition();
 
             // Determine x, y and heading error so we can use them to control the robot automatically.
