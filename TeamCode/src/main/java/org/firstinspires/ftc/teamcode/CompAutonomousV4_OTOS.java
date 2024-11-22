@@ -133,7 +133,7 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
 
         boolean moveToAprilTag = true;
 
-        calculationIK(11.9387, 14.254);
+
 
         // Initialize the Apriltag Detection process
         //initAprilTag();
@@ -182,6 +182,8 @@ public class CompAutonomousV4_OTOS extends LinearOpMode
         telemetry.addData(">", "Touch START to start OpMode");
         telemetry.update();*/
         waitForStart();
+
+        calculationIK(11.9387, 14.254);
 
         boolean goToTarget = true;
         boolean score = true;
